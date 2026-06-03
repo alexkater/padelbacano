@@ -63,9 +63,9 @@ export const THEME = {
 
 export const MODULE_FLAGS = {
   /** Torneos y competiciones */
-  tournaments: false,
+  tournaments: true,
   /** Pasarela de pagos (PSE, Nequi, tarjeta) */
-  payments: false,
+  payments: true,
   /** Programa de fidelización / puntos */
   loyalty: false,
   /** Escuela de pádel (gestión de clases, alumnos) */

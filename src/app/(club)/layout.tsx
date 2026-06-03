@@ -25,36 +25,12 @@ export default function ClubLayout({
 
           {/* Nav links */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link
-              href="/#instalaciones"
-              className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors"
-            >
-              Instalaciones
-            </Link>
-            <Link
-              href="/#precios"
-              className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors"
-            >
-              Precios
-            </Link>
-            <Link
-              href="/#contacto"
-              className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors"
-            >
-              Contacto
-            </Link>
-            <Link
-              href="/tablon"
-              className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors"
-            >
-              Tablón
-            </Link>
-            <Link
-              href="/escuela"
-              className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors"
-            >
-              Escuela
-            </Link>
+            <Link href="/#instalaciones" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Instalaciones</Link>
+            <Link href="/#precios" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Precios</Link>
+            <Link href="/#contacto" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Contacto</Link>
+            <Link href="/tablon" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Tablón</Link>
+            <Link href="/escuela" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Escuela</Link>
+            <Link href="/torneos" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Torneos</Link>
           </nav>
           {/* CTA */}
           <div className="flex items-center gap-3">

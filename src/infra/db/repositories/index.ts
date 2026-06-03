@@ -9,3 +9,5 @@ export { levelRepo } from "./level-repo";
 export { openMatchRepo } from "./open-match-repo";
 export { schoolRepo } from "./school-repo";
 export { chatRepo } from "./chat-repo";
+export { paymentRepo } from "./payment-repo";
+export { tournamentRepo } from "./tournament-repo";

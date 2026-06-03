@@ -12,3 +12,6 @@ export type { ILevelRepository } from "./level-repository";
 export type { IOpenMatchRepository } from "./open-match-repository";
 export type { ISchoolRepository } from "./school-repository";
 export type { IChatRepository } from "./chat-repository";
+export type { IPaymentRepository } from "./payment-repository";
+export type { ITournamentRepository } from "./tournament-repository";
+export type { IPaymentGateway, PaymentResult, PaymentRequest } from "./payment-gateway";

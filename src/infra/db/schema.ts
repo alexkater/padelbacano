@@ -392,4 +392,125 @@ export const chatMessages = sqliteTable("chat_messages", {
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
+
+});
+
+// ─── Payment methods ──────────────────────────────────────────────────────
+
+export const paymentMethods = sqliteTable("payment_methods", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  provider: text("provider", {
+    enum: ["pse", "nequi", "daviplata", "credit_card", "cash"],
+  }).notNull(),
+  name: text("name").notNull(),
+  isEnabled: integer("is_enabled", { mode: "boolean" }).notNull().default(true),
+  config: text("config", { mode: "json" }).$type<Record<string, string>>(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const transactions = sqliteTable("transactions", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  bookingId: text("booking_id")
+    .references(() => bookings.id, { onDelete: "set null" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(),
+  currency: text("currency").notNull().default("COP"),
+  method: text("method", {
+    enum: ["pse", "nequi", "daviplata", "credit_card", "cash"],
+  }).notNull(),
+  status: text("status", {
+    enum: ["pending", "completed", "failed", "refunded"],
+  }).notNull().default("pending"),
+  gatewayRef: text("gateway_ref"),
+  metadata: text("metadata", { mode: "json" }).$type<Record<string, unknown>>(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// ─── Tournaments ─────────────────────────────────────────────────────────
+
+export const tournaments = sqliteTable("tournaments", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  format: text("format", {
+    enum: ["single_elimination", "round_robin", "americano", "mexicano"],
+  }).notNull().default("single_elimination"),
+  startDate: integer("start_date", { mode: "timestamp" }).notNull(),
+  endDate: integer("end_date", { mode: "timestamp" }),
+  registrationDeadline: integer("registration_deadline", { mode: "timestamp" }),
+  minLevel: integer("min_level"),
+  maxLevel: integer("max_level"),
+  maxParticipants: integer("max_participants"),
+  entryFee: integer("entry_fee"),
+  prize: text("prize"),
+  status: text("status", {
+    enum: ["draft", "registration", "in_progress", "completed", "cancelled"],
+  }).notNull().default("draft"),
+  rules: text("rules"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const tournamentRegistrations = sqliteTable("tournament_registrations", {
+  id: text("id").primaryKey(),
+  tournamentId: text("tournament_id")
+    .notNull()
+    .references(() => tournaments.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: text("status", { enum: ["pending", "confirmed", "cancelled"] })
+    .notNull().default("pending"),
+  paymentStatus: text("payment_status", { enum: ["unpaid", "paid"] })
+    .notNull().default("unpaid"),
+  registeredAt: integer("registered_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const tournamentMatches = sqliteTable("tournament_matches", {
+  id: text("id").primaryKey(),
+  tournamentId: text("tournament_id")
+    .notNull()
+    .references(() => tournaments.id, { onDelete: "cascade" }),
+  courtId: text("court_id")
+    .references(() => courts.id, { onDelete: "set null" }),
+  round: integer("round").notNull(),
+  player1Id: text("player1_id")
+    .references(() => users.id, { onDelete: "set null" }),
+  player2Id: text("player2_id")
+    .references(() => users.id, { onDelete: "set null" }),
+  score1: integer("score1"),
+  score2: integer("score2"),
+  winnerId: text("winner_id")
+    .references(() => users.id, { onDelete: "set null" }),
+  startTime: integer("start_time", { mode: "timestamp" }),
+  status: text("status", {
+    enum: ["scheduled", "in_progress", "completed", "cancelled"],
+  }).notNull().default("scheduled"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
 });

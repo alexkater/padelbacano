@@ -17,3 +17,7 @@ export type { PlayerLevel } from "./level";
 export type { OpenMatch, OpenMatchPlayer } from "./open-match";
 export type { Coach, Class, ClassEnrollment } from "./school";
 export type { ChatMessage } from "./chat";
+export type { PaymentMethod, Transaction, PaymentProvider, TransactionStatus } from "./payment";
+export { PAYMENT_PROVIDERS, TRANSACTION_STATUSES } from "./payment";
+export type { Tournament, TournamentRegistration, TournamentMatch, TournamentFormat, TournamentStatus } from "./tournament";
+export { TOURNAMENT_FORMATS, TOURNAMENT_STATUSES } from "./tournament";
