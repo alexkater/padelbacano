@@ -4,7 +4,7 @@ import { clubRepo } from "@/infra/db/repositories";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AnnouncementFeed } from "@/components/community/announcement-feed";
+import { AnnouncementFeed } from "@/modules/social/components";
 import "../hero.css";
 
 export default async function LandingPage() {

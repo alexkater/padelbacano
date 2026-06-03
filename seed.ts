@@ -166,5 +166,58 @@ db.prepare(`INSERT OR IGNORE INTO user_profiles (id, user_id, club_id, role, mem
   db.prepare(`INSERT INTO partner_posts (id, club_id, user_id, name, level, schedule, notes, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
     .run(uuid(), clubId, guestId, "Ana D.", 2, "Lunes y miércoles 18:00", "Estoy empezando, busco gente con paciencia para mejorar.", 1, now);
 
+
+// ─── Seed Demo Club 2: Pádel Norte Bogotá ────────────────────
+
+const club2Id = uuid();
+
+db.prepare(`INSERT INTO clubs (id, slug, name, pricing, theme, cancellation_policy, contact, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+  .run(
+    club2Id,
+    "padel-norte-bogota",
+    "Pádel Norte Bogotá",
+    JSON.stringify({ memberPrice: 35000, nonMemberPrice: 55000, currency: "COP" }),
+    JSON.stringify({ primaryColor: "#0f4c81", surfaceColor: "#e8f0fe", fontFamily: "Inter", logoUrl: "/logo.png", borderRadius: "lg" }),
+    JSON.stringify({ minHoursBefore: 4, penaltyPercent: 50, allowRefund: true }),
+    JSON.stringify({ phone: "601 745 8900", email: "info@padelbogota.co", whatsapp: "573001234567", address: "Calle 134 #55-30, Bogotá", googleMapsUrl: "https://maps.google.com/?q=Calle+134+55-30+Bogota" }),
+    JSON.stringify({ 
+      hero: { 
+        title: "Pádel Norte Bogotá", 
+        subtitle: "El Club de Pádel más grande de Colombia", 
+        description: "8 canchas de cristal con la mejor tecnología. Academia, torneos, restaurante y mucho más. Abierto 24 horas.", 
+        heroImageUrl: null, 
+        photos: [] 
+      }, 
+      about: "Pádel Norte Bogotá es el club de pádel más grande de Colombia con 8 canchas de cristal de última generación. Nuestras instalaciones incluyen gimnasio, restaurante, zona de coworking y terraza con vista a los cerros orientales.\n\nContamos con una academia de pádel dirigida por entrenadores certificados internacionalmente, con programas para todos los niveles: iniciación, intermedio, avanzado y competición.\n\nNuestro sistema de reservas inteligente garantiza disponibilidad para todos nuestros socios, con precios preferenciales y eventos exclusivos.", 
+      prices: "Precios por pista y hora (90 min):\n\nSocios: 35.000 COP por persona\nNo socios: 55.000 COP por persona\n\nMembresías desde 150.000 COP/mes con beneficios exclusivos.\n\nHorarios valle (lunes a viernes 9:00-14:00): 20% descuento.", 
+      openingHours: "Lunes a domingo de 9:00 a 23:00 (24h para socios premium)" 
+    }),
+    now, now
+  );
+
+for (let i = 1; i <= 8; i++) {
+  db.prepare(`INSERT INTO courts (id, club_id, name, court_type, indoor, is_active, "order", created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(uuid(), club2Id, `Cancha ${i}`, i <= 6 ? "glass" : "panoramic", 1, 1, i, now);
+}
+
+// Add guest profile for club 2
+db.prepare(`INSERT OR IGNORE INTO user_profiles (id, user_id, club_id, role, member_type, display_name, phone, level, joined_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+  .run(uuid(), guestId, club2Id, "guest", "non_member", "Guest", null, null, now);
+
+// Seed announcements for club 2
+db.prepare(`INSERT INTO announcements (id, club_id, title, content, type, is_published, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+  .run(uuid(), club2Id, "¡Inauguración de nuevas canchas panorámicas!", "Estrenamos 2 canchas panorámicas con vista a los cerros orientales. Reserva tu turno y disfruta de la mejor experiencia de pádel en Bogotá.", "general", 1, now, now);
+
+db.prepare(`INSERT INTO announcements (id, club_id, title, content, type, is_published, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+  .run(uuid(), club2Id, "Torneo Interclubes 2026", "Participa en el torneo interclubes más importante del año. Categorías: 3ª, 4ª y 5ª. Inscripciones abiertas hasta el 15 de junio.", "torneo", 1, now, now);
+
+// Seed partner posts for club 2
+db.prepare(`INSERT INTO partner_posts (id, club_id, user_id, name, level, schedule, notes, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+  .run(uuid(), club2Id, guestId, "Andrés M.", 5, "Martes y jueves 19:00", "Busco partidos de nivel alto. Juego de revés. Preparándome para torneos.", 1, now);
+
+db.prepare(`INSERT INTO partner_posts (id, club_id, user_id, name, level, schedule, notes, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+  .run(uuid(), club2Id, guestId, "Diana C.", 3, "Sábados por la mañana", "Nivel intermedio, busco grupo fijo para jugar los sábados.", 1, now);
+
+console.log("✅ Seeded: Pádel Norte Bogotá (" + club2Id + ") with 8 courts");
 console.log("✅ Seeded: El Remate Padel Club (" + clubId + ") with 11 courts + test user");
 db.close();
