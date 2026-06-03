@@ -5,7 +5,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
-import { ChatComingSoon } from "@/components/community/chat-coming-soon";
+import { ChatComingSoon } from "@/components/community/chat-coming-soon"
+import { OpenMatches } from "@/modules/social/components";
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -275,7 +276,10 @@ export default function BookingPage() {
       )}
 
       <div className="mt-8">
+        <OpenMatches />
+        <div className="mt-8">
         <ChatComingSoon />
+        </div>
       </div>
 
       {/* ─── Confirm dialog ────────────────────────────────────────── */}

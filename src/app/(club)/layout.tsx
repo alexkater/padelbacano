@@ -49,8 +49,13 @@ export default function ClubLayout({
             >
               Tablón
             </Link>
+            <Link
+              href="/escuela"
+              className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors"
+            >
+              Escuela
+            </Link>
           </nav>
-
           {/* CTA */}
           <div className="flex items-center gap-3">
             <Link href="/perfil" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] hidden md:block">
