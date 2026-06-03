@@ -106,6 +106,129 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS classes (    id TEXT PRIMARY KEY,    club_id TEXT NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,    coach_id TEXT NOT NULL REFERENCES coaches(id) ON DELETE CASCADE,    court_id TEXT REFERENCES courts(id) ON DELETE SET NULL,    name TEXT NOT NULL,    description TEXT,    type TEXT NOT NULL DEFAULT '''group''',    level INTEGER,    max_students INTEGER NOT NULL DEFAULT 4,    price INTEGER NOT NULL,    schedule TEXT NOT NULL,    start_date INTEGER NOT NULL,    end_date INTEGER,    is_active INTEGER NOT NULL DEFAULT 1,    created_at INTEGER NOT NULL  );
   CREATE TABLE IF NOT EXISTS class_enrollments (    id TEXT PRIMARY KEY,    class_id TEXT NOT NULL REFERENCES classes(id) ON DELETE CASCADE,    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,    status TEXT NOT NULL DEFAULT '''active''',    enrolled_at INTEGER NOT NULL  );
   CREATE TABLE IF NOT EXISTS chat_messages (    id TEXT PRIMARY KEY,    club_id TEXT NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,    sender_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,    receiver_id TEXT REFERENCES users(id) ON DELETE CASCADE,    match_id TEXT REFERENCES open_matches(id) ON DELETE CASCADE,    content TEXT NOT NULL,    created_at INTEGER NOT NULL  );
+
+  CREATE TABLE IF NOT EXISTS payment_methods (
+    id TEXT PRIMARY KEY,
+    club_id TEXT NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+    provider TEXT NOT NULL,
+    name TEXT NOT NULL,
+    is_enabled INTEGER NOT NULL DEFAULT 1,
+    config TEXT,
+    created_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS transactions (
+    id TEXT PRIMARY KEY,
+    club_id TEXT NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+    booking_id TEXT REFERENCES bookings(id) ON DELETE SET NULL,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    amount INTEGER NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'COP',
+    method TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    gateway_ref TEXT,
+    metadata TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS tournaments (
+    id TEXT PRIMARY KEY,
+    club_id TEXT NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT,
+    format TEXT NOT NULL DEFAULT 'single_elimination',
+    start_date INTEGER NOT NULL,
+    end_date INTEGER,
+    registration_deadline INTEGER,
+    min_level INTEGER,
+    max_level INTEGER,
+    max_participants INTEGER,
+    entry_fee INTEGER,
+    prize TEXT,
+    status TEXT NOT NULL DEFAULT 'draft',
+    rules TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS tournament_registrations (
+    id TEXT PRIMARY KEY,
+    tournament_id TEXT NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status TEXT NOT NULL DEFAULT 'pending',
+    payment_status TEXT NOT NULL DEFAULT 'unpaid',
+    registered_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS tournament_matches (
+    id TEXT PRIMARY KEY,
+    tournament_id TEXT NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
+    court_id TEXT REFERENCES courts(id) ON DELETE SET NULL,
+    round INTEGER NOT NULL,
+    player1_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    player2_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    score1 INTEGER,
+    score2 INTEGER,
+    winner_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    start_time INTEGER,
+    status TEXT NOT NULL DEFAULT 'scheduled',
+    created_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS daily_summaries (
+    id TEXT PRIMARY KEY,
+    club_id TEXT NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+    date INTEGER NOT NULL,
+    total_bookings INTEGER NOT NULL DEFAULT 0,
+    cancelled_bookings INTEGER NOT NULL DEFAULT 0,
+    occupancy_pct INTEGER NOT NULL DEFAULT 0,
+    revenue INTEGER NOT NULL DEFAULT 0,
+    unique_players INTEGER NOT NULL DEFAULT 0,
+    avg_duration INTEGER NOT NULL DEFAULT 0,
+    peak_hour INTEGER,
+    created_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS invoices (
+    id TEXT PRIMARY KEY,
+    club_id TEXT NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    invoice_number TEXT NOT NULL,
+    prefix TEXT NOT NULL DEFAULT 'FE',
+    consecutive INTEGER NOT NULL,
+    issue_date INTEGER NOT NULL,
+    due_date INTEGER,
+    subtotal INTEGER NOT NULL,
+    tax_rate INTEGER NOT NULL DEFAULT 1900,
+    tax_amount INTEGER NOT NULL,
+    total INTEGER NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'COP',
+    status TEXT NOT NULL DEFAULT 'draft',
+    customer_name TEXT NOT NULL,
+    customer_document TEXT,
+    customer_document_type TEXT,
+    customer_email TEXT,
+    customer_phone TEXT,
+    customer_address TEXT,
+    payment_method TEXT,
+    notes TEXT,
+    dian_cufe TEXT,
+    dian_xml TEXT,
+    dian_status TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS invoice_items (
+    id TEXT PRIMARY KEY,
+    invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+    description TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    unit_price INTEGER NOT NULL,
+    subtotal INTEGER NOT NULL,
+    booking_id TEXT REFERENCES bookings(id) ON DELETE SET NULL
+  );
 `);
 
 
@@ -230,6 +353,33 @@ db.prepare(`INSERT INTO partner_posts (id, club_id, user_id, name, level, schedu
   .run(uuid(), club2Id, guestId, "Diana C.", 3, "Sábados por la mañana", "Nivel intermedio, busco grupo fijo para jugar los sábados.", 1, now);
 
 console.log("✅ Seeded: Pádel Norte Bogotá (" + club2Id + ") with 8 courts");
+
+// ─── Seed demo data for El Remate ──────────────────────────
+  const remateId = db.prepare("SELECT id FROM clubs WHERE slug = 'el-remate'").get().id;
+
+  // Coaches
+  const coach1Id = uuid();
+  db.prepare(`INSERT INTO coaches (id, club_id, name, bio, specialties, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`).run(coach1Id, remateId, 'Fran Piñero', 'Coordinador Escuela de Pádel. 15 años de experiencia.', JSON.stringify(['iniciación','competición','adultos']), 1, now);
+  db.prepare(`INSERT INTO coaches (id, club_id, name, bio, specialties, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`).run(uuid(), remateId, 'Vicente Díaz', 'Entrenador nacional. Técnica avanzada.', JSON.stringify(['técnica','físico','avanzado']), 1, now);
+  db.prepare(`INSERT INTO coaches (id, club_id, name, bio, specialties, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`).run(uuid(), remateId, 'Paco Salazar', 'Especialista infantil. Metodología lúdica.', JSON.stringify(['infantil','juvenil','iniciación']), 1, now);
+
+  // Classes
+  db.prepare(`INSERT INTO classes (id, club_id, coach_id, name, description, type, level, max_students, price, schedule, start_date, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uuid(), remateId, coach1Id, 'Iniciación Adultos', 'Técnica básica y primeros partidos.', 'group', 1, 4, 1500, JSON.stringify({daysOfWeek:[1,3],startHour:10,endHour:11}), now, 1, now);
+  db.prepare(`INSERT INTO classes (id, club_id, coach_id, name, description, type, level, max_students, price, schedule, start_date, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uuid(), remateId, coach1Id, 'Escuela Infantil', 'Clases para niños 6-12 años.', 'kids', 1, 6, 1200, JSON.stringify({daysOfWeek:[6],startHour:10,endHour:12}), now, 1, now);
+
+  // Membership plans
+  db.prepare(`INSERT INTO membership_plans (id, club_id, name, description, price, currency, interval, benefits, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uuid(), remateId, 'Socio Básico', '10% descuento en reservas. Prioridad 48h.', 1500, 'EUR', 'monthly', JSON.stringify({discountPercent:10,priorityBookingHours:48,maxBookingsPerDay:2,maxActiveBookings:4,guestPasses:0}), 1, now);
+  db.prepare(`INSERT INTO membership_plans (id, club_id, name, description, price, currency, interval, benefits, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uuid(), remateId, 'Socio Premium', '20% descuento. Reservas ilimitadas. Pases de invitado.', 3000, 'EUR', 'monthly', JSON.stringify({discountPercent:20,priorityBookingHours:168,maxBookingsPerDay:4,maxActiveBookings:8,guestPasses:2}), 1, now);
+
+  // Tournament
+  const summerStart = Math.floor(new Date('2026-07-15').getTime() / 1000);
+  const summerEnd = Math.floor(new Date('2026-07-20').getTime() / 1000);
+  db.prepare(`INSERT INTO tournaments (id, club_id, name, description, format, start_date, end_date, min_level, max_level, max_participants, entry_fee, prize, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(uuid(), remateId, 'Torneo de Verano 2026', 'Torneo anual. Categorías 3ª-5ª. Eliminación directa.', 'single_elimination', summerStart, summerEnd, 3, 5, 16, 2000, 'Trofeo + 1 mes socio gratis', 'registration', now, now);
+
+  // Payment methods
+  ['pse','nequi','cash'].forEach(provider => {
+    db.prepare(`INSERT INTO payment_methods (id, club_id, provider, name, is_enabled, config, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`).run(uuid(), remateId, provider, provider.toUpperCase(), 1, '{}', now);
+  });
 
 // ─── Seed pricing rules for club 1 ──────────────────────────  db.prepare(`INSERT INTO pricing_rules (id, club_id, name, day_of_week, start_hour, end_hour, member_price, non_member_price, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)    .run(uuid(), clubId, "Hora valle", null, 9, 14, 600, 1000, 1, now);  db.prepare(`INSERT INTO pricing_rules (id, club_id, name, day_of_week, start_hour, end_hour, member_price, non_member_price, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)    .run(uuid(), clubId, "Hora punta", null, 14, 23, 800, 1200, 1, now);
 // ─── Seed coaches for club 1 ────────────────────────────────  const coach1Id = uuid();  db.prepare(`INSERT INTO coaches (id, club_id, user_id, name, bio, photo_url, specialties, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)    .run(coach1Id, clubId, null, "Fran Piñero", "Coordinador de la Escuela de Pádel. Más de 15 años de experiencia formando jugadores de todos los niveles.", null, JSON.stringify(["iniciación", "competición", "adultos"]), 1, now);  db.prepare(`INSERT INTO coaches (id, club_id, user_id, name, bio, photo_url, specialties, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)    .run(uuid(), clubId, null, "Vicente Díaz", "Entrenador nacional especializado en técnica avanzada y preparación física.", null, JSON.stringify(["técnica", "físico", "avanzado"]), 1, now);  db.prepare(`INSERT INTO coaches (id, club_id, user_id, name, bio, photo_url, specialties, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)    .run(uuid(), clubId, null, "Paco Salazar", "Especialista en formación infantil y juvenil. Metodología lúdica adaptada a cada edad.", null, JSON.stringify(["infantil", "juvenil", "iniciación"]), 1, now);
