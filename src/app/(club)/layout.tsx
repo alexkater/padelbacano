@@ -1,10 +1,11 @@
+import { CLUB_CONFIG } from "@/padelbacano.config";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "El Remate Padel Club — Sevilla",
-  description: "11 pistas indoor de cristal cubiertas. Escuela, torneos y partidos nivelados.",
+  title: `${CLUB_CONFIG.name} — ${CLUB_CONFIG.location}`,
+  description: "Gestiona tu club de pádel con PádelBacano.",
 };
 
 export default function ClubLayout({
@@ -90,7 +91,7 @@ export default function ClubLayout({
           </div>
         </div>
         <div className="border-t border-[var(--club-border)] py-4 text-center text-xs text-[var(--club-ink-muted)]">
-          © {new Date().getFullYear()} El Remate Padel Club — Powered by PadelConnect
+          © {new Date().getFullYear()} ${CLUB_CONFIG.name} — Powered by PádelBacano
         </div>
       </footer>
     </div>

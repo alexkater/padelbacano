@@ -1,3 +1,4 @@
+import { CLUB_CONFIG } from "@/padelbacano.config";
 // ─── Email service — Nodemailer implementation ─────────────────────────────
 // Implements IEmailService port.
 // Falls back to console.log if no SMTP configured.
@@ -62,7 +63,7 @@ function createEmailService(): IEmailService {
     async send(payload) {
       try {
         await transporter.sendMail({
-          from: process.env.SMTP_FROM ?? "noreply@elrematepadel.com",
+          from: process.env.SMTP_FROM ?? "noreply@" + CLUB_CONFIG.domain,
           ...payload,
         });
         return true;

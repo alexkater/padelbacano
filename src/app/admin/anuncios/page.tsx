@@ -1,28 +1,70 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
-const MOCK = [
-  { id: 1, title: "¡Campeones de Andalucía!", type: "torneo", date: "28 Feb" },
-  { id: 2, title: "Nuevos horarios de escuela", type: "escuela", date: "15 Mar" },
-];
+type Announcement = {
+  id: string;
+  title: string;
+  content: string;
+  type: string;
+  isPublished: boolean;
+  createdAt: string;
+};
 
 export default function AnnouncementsPage() {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [type, setType] = useState("general");
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  function handleAdd() {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-    setTitle("");
-    setContent("");
+  const fetchAnnouncements = useCallback(async () => {
+    try {
+      const res = await fetch("/api/announcements?all=true");
+      if (res.ok) {
+        const data = await res.json();
+        setAnnouncements(data.announcements);
+      }
+    } catch { /* ignore */ }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, [fetchAnnouncements]);
+
+  async function handleAdd() {
+    if (!title || !content) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/announcements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, content, type }),
+      });
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+        setTitle("");
+        setContent("");
+        fetchAnnouncements();
+      }
+    } catch { /* ignore */ }
+    setSaving(false);
+  }
+
+  async function handleDelete(id: string) {
+    try {
+      await fetch(`/api/announcements/${id}`, { method: "DELETE" });
+      fetchAnnouncements();
+    } catch { /* ignore */ }
   }
 
   return (
@@ -51,26 +93,36 @@ export default function AnnouncementsPage() {
               <option value="escuela">Escuela</option>
             </select>
           </div>
-          <Button onClick={handleAdd}>Publicar Anuncio</Button>
+          <Button onClick={handleAdd} disabled={saving || !title || !content}>
+            {saving ? "Publicando..." : "Publicar Anuncio"}
+          </Button>
           {saved && <span className="text-sm text-[var(--club-primary)] font-medium ml-3">✓ Publicado</span>}
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Anuncios Publicados</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Anuncios Publicados ({announcements.length})</CardTitle></CardHeader>
         <CardContent>
-          {MOCK.map((a) => (
-            <div key={a.id} className="flex items-center justify-between py-3 border-b border-[var(--club-border)] last:border-0">
-              <div>
-                <p className="text-sm font-medium text-[var(--club-ink)]">{a.title}</p>
-                <p className="text-xs text-[var(--club-ink-muted)]">{a.date}</p>
+          {loading ? (
+            <p className="text-sm text-[var(--club-ink-muted)] py-4 text-center">Cargando...</p>
+          ) : announcements.length === 0 ? (
+            <p className="text-sm text-[var(--club-ink-muted)] py-4 text-center">No hay anuncios publicados.</p>
+          ) : (
+            announcements.map((a) => (
+              <div key={a.id} className="flex items-center justify-between py-3 border-b border-[var(--club-border)] last:border-0">
+                <div>
+                  <p className="text-sm font-medium text-[var(--club-ink)]">{a.title}</p>
+                  <p className="text-xs text-[var(--club-ink-muted)]">
+                    {new Date(a.createdAt).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{a.type}</Badge>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(a.id)} className="text-[var(--club-danger)] text-xs cursor-pointer">Eliminar</Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{a.type}</Badge>
-                <Button variant="ghost" size="sm" className="text-[var(--club-danger)] text-xs">Eliminar</Button>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </CardContent>
       </Card>
     </div>

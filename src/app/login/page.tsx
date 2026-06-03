@@ -1,4 +1,5 @@
 "use client";
+import { CLUB_CONFIG } from "@/padelbacano.config";
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
@@ -31,7 +32,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-[var(--club-surface)] px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>El Remate</CardTitle>
+          <CardTitle>{CLUB_CONFIG.shortName}</CardTitle>
           <CardDescription>Accede a tu cuenta para reservar</CardDescription>
         </CardHeader>
         <CardContent>

@@ -8,3 +8,6 @@ export { BOOKING_STATUSES, DURATION_OPTIONS } from "./booking";
 export type { TimeSlot, SlotQuery } from "./slot";
 export type { User, UserProfile, UserRole, MemberType } from "./user";
 export { USER_ROLES, MEMBER_TYPES } from "./user";
+export type { Announcement, AnnouncementType } from "./announcement";
+export { ANNOUNCEMENT_TYPES } from "./announcement";
+export type { PartnerPost } from "./partner-post";

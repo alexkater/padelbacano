@@ -1,10 +1,10 @@
+import { CLUB_CONFIG } from "@/padelbacano.config";
 import { clubRepo, bookingRepo } from "@/infra/db/repositories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const SLUG = "el-remate";
 
 export default async function AdminCalendar() {
-  const club = await clubRepo.findBySlug(SLUG);
+  const club = await clubRepo.findBySlug(CLUB_CONFIG.slug);
   const today = new Date();
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 

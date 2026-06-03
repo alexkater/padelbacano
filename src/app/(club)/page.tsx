@@ -1,3 +1,4 @@
+import { CLUB_CONFIG } from "@/padelbacano.config";
 import Link from "next/link";
 import { clubRepo } from "@/infra/db/repositories";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { AnnouncementFeed } from "@/components/community/announcement-feed";
 import "../hero.css";
 
 export default async function LandingPage() {
-  const club = await clubRepo.findBySlug("el-remate");
+  const club = await clubRepo.findBySlug(CLUB_CONFIG.slug);
 
   if (!club) {
     return (

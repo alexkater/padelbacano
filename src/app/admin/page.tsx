@@ -1,12 +1,12 @@
+import { CLUB_CONFIG } from "@/padelbacano.config";
 import Link from "next/link";
 import { clubRepo, bookingRepo } from "@/infra/db/repositories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CancelBookingButton } from "@/components/cancel-booking-button";
 
-const SLUG = "el-remate";
 
 export default async function AdminDashboard() {
-  const club = await clubRepo.findBySlug(SLUG);
+  const club = await clubRepo.findBySlug(CLUB_CONFIG.slug);
   const today = new Date();
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 

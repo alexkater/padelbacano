@@ -1,4 +1,5 @@
 "use client";
+import { CLUB_CONFIG } from "@/padelbacano.config";
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -19,7 +20,7 @@ export default function ContentEditorPage() {
   async function handleSave() {
     setSaving(true);
     try {
-      await fetch("/api/club/el-remate/content", {
+      await fetch("/api/club/" + CLUB_CONFIG.slug + "/content", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,4 +1,5 @@
 "use client";
+import { CLUB_CONFIG } from "@/padelbacano.config";
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ function addDaysStr(dateStr: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-const DEFAULT_SLUG = "el-remate";
+const DEFAULT_SLUG = CLUB_CONFIG.slug;
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 9);
 
 // ─── Page ───────────────────────────────────────────────────────────────

@@ -1,3 +1,4 @@
+import { CLUB_CONFIG } from "@/padelbacano.config";
 import { NextRequest, NextResponse } from "next/server";
 import { bookingRepo } from "@/infra/db/repositories";
 import { emailService } from "@/infra/email";
@@ -19,8 +20,8 @@ export async function PUT(
 
   const updated = await bookingRepo.updateStatus(id, "cancelled");
 
-  emailService.sendCancellationNotice("booking@elrematepadel.com", {
-    clubName: "El Remate Padel Club",
+  emailService.sendCancellationNotice("booking@" + CLUB_CONFIG.domain, {
+    clubName: CLUB_CONFIG.name,
     courtName: booking.courtId.slice(0, 8),
     date: booking.startTime.toLocaleDateString("es-ES"),
     time: booking.startTime.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }),

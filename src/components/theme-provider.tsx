@@ -1,4 +1,5 @@
 "use client";
+import { CLUB_CONFIG } from "@/padelbacano.config";
 
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ClubTheme } from "@/core/entities/club";
@@ -33,7 +34,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function loadTheme() {
       try {
-        const slug = window.location.hostname.split(".")[0] || "el-remate";
+        const slug = CLUB_CONFIG.slug;
         const res = await fetch(`/api/club/${slug}/theme`);
         if (res.ok) {
           const data = await res.json();

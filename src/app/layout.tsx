@@ -1,3 +1,4 @@
+import { CLUB_CONFIG } from "@/padelbacano.config";
 import type { Metadata } from "next";
 import { Saira, Anton } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -17,15 +18,15 @@ const anton = Anton({
 
 export const metadata: Metadata = {
   title: {
-    default: "El Remate Padel Club — Sevilla",
-    template: "%s | El Remate Padel Club",
+    default: `${CLUB_CONFIG.name} — ${CLUB_CONFIG.location}`,
+    template: `%s | ${CLUB_CONFIG.shortName}`,
   },
   description:
-    "11 pistas indoor de cristal cubiertas en Sevilla. Reserva online, escuela de pádel, torneos y partidos nivelados.",
+    "Plataforma de gestión de clubes de pádel y tenis. Reserva online, gestión de socios, torneos y más.",
   manifest: "/manifest.json",
   openGraph: {
-    title: "El Remate Padel Club",
-    description: "Reserva tu pista de pádel en El Remate, Sevilla",
+    title: CLUB_CONFIG.name,
+    description: `Reserva tu pista de pádel en ${CLUB_CONFIG.shortName}, ${CLUB_CONFIG.location}`,
     images: ["/og-image.jpg"],
   },
   icons: {

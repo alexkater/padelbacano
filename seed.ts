@@ -72,7 +72,31 @@ db.exec(`
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS announcements (
+    id TEXT PRIMARY KEY,
+    club_id TEXT NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT 'general',
+    is_published INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS partner_posts (
+    id TEXT PRIMARY KEY,
+    club_id TEXT NOT NULL REFERENCES clubs(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    level INTEGER NOT NULL,
+    schedule TEXT NOT NULL,
+    notes TEXT,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL
+  );
 `);
+
 
 // ─── Seed El Remate ────────────────────────────────────
 
@@ -118,6 +142,29 @@ db.prepare(`INSERT OR IGNORE INTO users (id, email, name, password_hash, image, 
 
 db.prepare(`INSERT OR IGNORE INTO user_profiles (id, user_id, club_id, role, member_type, display_name, phone, level, joined_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
   .run(uuid(), guestId, clubId, "guest", "non_member", "Guest", null, null, now);
+
+// ─── Seed announcements ────────────────────────────────
+  db.prepare(`INSERT INTO announcements (id, club_id, title, content, type, is_published, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(uuid(), clubId, "¡Campeones de Andalucía!", "Nuestro equipo se proclama campeón en 1ª Categoría. ¡Enhorabuena a Ignacio, Álvaro, Franco, Laura, Beatriz y todo el equipo!", "torneo", 1, now, now);
+
+  db.prepare(`INSERT INTO announcements (id, club_id, title, content, type, is_published, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(uuid(), clubId, "Nuevos horarios de escuela", "La escuela de pádel amplía horarios. Clases para todos los niveles de lunes a sábado. ¡Pregunta por WhatsApp!", "escuela", 1, now, now);
+
+  db.prepare(`INSERT INTO announcements (id, club_id, title, content, type, is_published, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(uuid(), clubId, "Torneo interno este sábado", "Apúntate al torneo interno del club. Niveles 3-5. Premio: 1 mes de socio gratis. Plazas limitadas.", "torneo", 1, now, now);
+
+// ─── Seed partner posts ────────────────────────────────
+  db.prepare(`INSERT INTO partner_posts (id, club_id, user_id, name, level, schedule, notes, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(uuid(), clubId, guestId, "Carlos R.", 4, "Jueves y viernes tarde", "Busco partido nivel medio. Juego de drive.", 1, now);
+
+  db.prepare(`INSERT INTO partner_posts (id, club_id, user_id, name, level, schedule, notes, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(uuid(), clubId, guestId, "Laura M.", 3, "Mañanas entre semana", "Nivel iniciación-medio. Prefiero pista panorámica.", 1, now);
+
+  db.prepare(`INSERT INTO partner_posts (id, club_id, user_id, name, level, schedule, notes, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(uuid(), clubId, guestId, "Pablo S.", 5, "Fines de semana", "Busco revés para torneo interno del club.", 1, now);
+
+  db.prepare(`INSERT INTO partner_posts (id, club_id, user_id, name, level, schedule, notes, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(uuid(), clubId, guestId, "Ana D.", 2, "Lunes y miércoles 18:00", "Estoy empezando, busco gente con paciencia para mejorar.", 1, now);
 
 console.log("✅ Seeded: El Remate Padel Club (" + clubId + ") with 11 courts + test user");
 db.close();

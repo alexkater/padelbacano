@@ -1,4 +1,5 @@
 "use client";
+import { CLUB_CONFIG } from "@/padelbacano.config";
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -21,7 +22,7 @@ export default function AppearancePage() {
     root.style.setProperty("--club-radius", { none: "0", sm: "0.25rem", md: "0.5rem", lg: "0.75rem" }[borderRadius]);
 
     try {
-      await fetch("/api/club/el-remate/theme", {
+      await fetch("/api/club/" + CLUB_CONFIG.slug + "/theme", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ primaryColor, surfaceColor, fontFamily, borderRadius }),

@@ -1,30 +1,84 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-// Mock player stats — will be replaced by API when auth/profile is wired
-const MOCK_STATS = {
-  displayName: "Alejandro G.",
-  level: 5,
-  totalBookings: 47,
-  thisMonth: 12,
-  favoriteCourt: "Pista 3",
-  favoriteHour: "17:00",
-  streak: 8,
-  frequentPartners: ["María L.", "Carlos R.", "Pablo S."],
-  recentBookings: [
-    { date: "21 May", court: "Pista 3", time: "17:00", duration: 90 },
-    { date: "19 May", court: "Pista 1", time: "16:00", duration: 60 },
-    { date: "18 May", court: "Pista 2", time: "18:00", duration: 90 },
-    { date: "16 May", court: "Pista 5", time: "14:00", duration: 60 },
-    { date: "15 May", court: "Pista 3", time: "17:00", duration: 90 },
-    { date: "14 May", court: "Pista 4", time: "19:00", duration: 90 },
-    { date: "13 May", court: "Pista 3", time: "17:00", duration: 90 },
-    { date: "12 May", court: "Pista 1", time: "10:00", duration: 60 },
-  ],
+type Profile = {
+  displayName: string;
+  level: number | null;
+  memberType: string;
+  role: string;
+  phone: string | null;
+  joinedAt: string;
+};
+
+type Booking = {
+  id: string;
+  courtId: string;
+  startTime: string;
+  duration: number;
 };
 
 export default function ProfilePage() {
-  const s = MOCK_STATS;
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        // Fetch profile and recent bookings
+        const [profileRes, bookingsRes] = await Promise.all([
+          fetch("/api/user/profile"),
+          fetch("/api/bookings?limit=8"),
+        ]);
+
+        if (profileRes.ok) {
+          const data = await profileRes.json();
+          setProfile(data.profile);
+        }
+        if (bookingsRes.ok) {
+          const data = await bookingsRes.json();
+          setBookings(data.bookings || []);
+        }
+      } catch {
+        // Degrade gracefully
+      }
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-6">
+          <div className="flex items-start gap-6">
+            <div className="w-20 h-20 rounded-full bg-gray-200" />
+            <div className="space-y-2">
+              <div className="h-6 bg-gray-200 rounded w-48" />
+              <div className="h-4 bg-gray-200 rounded w-32" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const s = profile || {
+    displayName: "Jugador",
+    level: null,
+    memberType: "non_member",
+    role: "guest",
+    phone: null,
+    joinedAt: new Date().toISOString(),
+  };
+
+  const recentBookings = bookings.slice(0, 8);
+  const totalBookings = bookings.length;
+  const favoriteCourts = [...new Set(bookings.map((b) => b.courtId?.slice(0, 8)))];
+  const favoriteCourt = favoriteCourts[0] || "—";
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -36,8 +90,9 @@ export default function ProfilePage() {
         <div>
           <h1 className="text-2xl font-bold text-[var(--club-ink)]">{s.displayName}</h1>
           <div className="flex items-center gap-3 mt-1">
-            <Badge variant="default">Nivel {s.level}/7</Badge>
-            <span className="text-sm text-[var(--club-ink-muted)]">Racha: {s.streak} días seguidos</span>
+            {s.level ? <Badge variant="default">Nivel {s.level}/7</Badge> : null}
+            <Badge variant="outline">{s.memberType === "member" ? "Socio" : "No Socio"}</Badge>
+            {s.phone && <span className="text-sm text-[var(--club-ink-muted)]">{s.phone}</span>}
           </div>
         </div>
       </div>
@@ -45,10 +100,13 @@ export default function ProfilePage() {
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Total partidos", value: s.totalBookings },
-          { label: "Este mes", value: s.thisMonth },
-          { label: "Pista favorita", value: s.favoriteCourt },
-          { label: "Hora favorita", value: s.favoriteHour },
+          { label: "Total partidos", value: totalBookings },
+          { label: "Este mes", value: recentBookings.filter((b) => {
+            const d = new Date(b.startTime);
+            return d.getMonth() === new Date().getMonth();
+          }).length },
+          { label: "Pista habitual", value: favoriteCourt },
+          { label: "Desde", value: new Date(s.joinedAt).toLocaleDateString("es-ES", { month: "short", year: "numeric" }) },
         ].map((stat) => (
           <Card key={stat.label}>
             <CardContent>
@@ -59,28 +117,15 @@ export default function ProfilePage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Frequent partners */}
-        <Card>
-          <CardHeader><CardTitle>Compañeros Frecuentes</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {s.frequentPartners.map((name, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <div className="w-7 h-7 rounded-full bg-[var(--club-surface-alt)] flex items-center justify-center text-xs font-medium text-[var(--club-ink)]">
-                    {name.charAt(0)}
-                  </div>
-                  {name}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent bookings */}
-        <Card className="md:col-span-2">
-          <CardHeader><CardTitle>Últimos Partidos</CardTitle></CardHeader>
-          <CardContent>
+      {/* Recent bookings */}
+      <Card>
+        <CardHeader><CardTitle>Últimos Partidos</CardTitle></CardHeader>
+        <CardContent>
+          {recentBookings.length === 0 ? (
+            <p className="text-sm text-[var(--club-ink-muted)] py-4 text-center">
+              No tienes partidos todavía. ¡Reserva tu primera pista!
+            </p>
+          ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--club-border)] text-left text-[var(--club-ink-muted)]">
@@ -91,32 +136,20 @@ export default function ProfilePage() {
                 </tr>
               </thead>
               <tbody>
-                {s.recentBookings.map((b, i) => (
-                  <tr key={i} className="border-b border-[var(--club-border)] last:border-0">
-                    <td className="py-2 text-[var(--club-ink)]">{b.date}</td>
-                    <td className="py-2 text-[var(--club-ink)]">{b.court}</td>
-                    <td className="py-2 text-[var(--club-ink-muted)]">{b.time}</td>
-                    <td className="py-2 text-[var(--club-ink-muted)]">{b.duration} min</td>
-                  </tr>
-                ))}
+                {recentBookings.map((b, i) => {
+                  const d = new Date(b.startTime);
+                  return (
+                    <tr key={b.id || i} className="border-b border-[var(--club-border)] last:border-0">
+                      <td className="py-2 text-[var(--club-ink)]">{d.toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</td>
+                      <td className="py-2 text-[var(--club-ink)]">{b.courtId?.slice(0, 8) || "—"}</td>
+                      <td className="py-2 text-[var(--club-ink-muted)]">{d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}</td>
+                      <td className="py-2 text-[var(--club-ink-muted)]">{b.duration} min</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Referral — coming soon */}
-      <Card className="mt-6 opacity-60">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Código de Referido
-            <Badge variant="outline">Próximamente</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-[var(--club-ink-muted)]">
-            Invita a tus amigos y consigue descuentos mutuos. Disponible pronto.
-          </p>
+          )}
         </CardContent>
       </Card>
     </div>

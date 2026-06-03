@@ -137,3 +137,45 @@ export const bookings = sqliteTable("bookings", {
     .notNull()
     .default(sql`(unixepoch())`),
 });
+
+
+// ─── Announcements ─────────────────────────────────────────────────────────
+
+export const announcements = sqliteTable("announcements", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  type: text("type", { enum: ["general", "torneo", "escuela"] })
+    .notNull()
+    .default("general"),
+  isPublished: integer("is_published", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// ─── Partner posts (tablón "Busco Compañero") ──────────────────────────
+
+export const partnerPosts = sqliteTable("partner_posts", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  level: integer("level").notNull(),
+  schedule: text("schedule").notNull(),
+  notes: text("notes"),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
