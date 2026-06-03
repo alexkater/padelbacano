@@ -178,4 +178,218 @@ export const partnerPosts = sqliteTable("partner_posts", {
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
+
+});
+export const membershipPlans = sqliteTable("membership_plans", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  price: integer("price").notNull(),
+  currency: text("currency").notNull().default("EUR"),
+  interval: text("interval", { enum: ["monthly", "quarterly", "yearly"] })
+    .notNull()
+    .default("monthly"),
+  benefits: text("benefits", { mode: "json" }).notNull().$type<{
+    discountPercent: number;
+    priorityBookingHours: number;
+    maxBookingsPerDay: number;
+    maxActiveBookings: number;
+    guestPasses: number;
+  }>(),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const userMemberships = sqliteTable("user_memberships", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  planId: text("plan_id")
+    .notNull()
+    .references(() => membershipPlans.id, { onDelete: "cascade" }),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  status: text("status", { enum: ["active", "cancelled", "expired"] })
+    .notNull()
+    .default("active"),
+  startDate: integer("start_date", { mode: "timestamp" }).notNull(),
+  endDate: integer("end_date", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// ─── Dynamic pricing ─────────────────────────────────────────────────────
+
+export const pricingRules = sqliteTable("pricing_rules", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  dayOfWeek: integer("day_of_week"),
+  startHour: integer("start_hour"),
+  endHour: integer("end_hour"),
+  memberPrice: integer("member_price").notNull(),
+  nonMemberPrice: integer("non_member_price").notNull(),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// ─── Player levels (ELO-like) ────────────────────────────────────────────
+
+export const playerLevels = sqliteTable("player_levels", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  rating: integer("rating").notNull().default(1000),
+  level: integer("level").notNull().default(1),
+  matchesPlayed: integer("matches_played").notNull().default(0),
+  matchesWon: integer("matches_won").notNull().default(0),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// ─── Open matches ────────────────────────────────────────────────────────
+
+export const openMatches = sqliteTable("open_matches", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  courtId: text("court_id")
+    .notNull()
+    .references(() => courts.id, { onDelete: "cascade" }),
+  creatorId: text("creator_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  title: text("title"),
+  startTime: integer("start_time", { mode: "timestamp" }).notNull(),
+  endTime: integer("end_time", { mode: "timestamp" }).notNull(),
+  duration: integer("duration").notNull(),
+  minLevel: integer("min_level"),
+  maxLevel: integer("max_level"),
+  maxPlayers: integer("max_players").notNull().default(4),
+  status: text("status", {
+    enum: ["open", "full", "cancelled", "completed"],
+  })
+    .notNull()
+    .default("open"),
+  notes: text("notes"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const openMatchPlayers = sqliteTable("open_match_players", {
+  id: text("id").primaryKey(),
+  matchId: text("match_id")
+    .notNull()
+    .references(() => openMatches.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  joinedAt: integer("joined_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// ─── School / Academy ────────────────────────────────────────────────────
+
+export const coaches = sqliteTable("coaches", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .references(() => users.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  bio: text("bio"),
+  photoUrl: text("photo_url"),
+  specialties: text("specialties", { mode: "json" }).notNull().$type<string[]>(),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const classes = sqliteTable("classes", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  coachId: text("coach_id")
+    .notNull()
+    .references(() => coaches.id, { onDelete: "cascade" }),
+  courtId: text("court_id")
+    .references(() => courts.id, { onDelete: "set null" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  type: text("type", { enum: ["group", "private", "clinic", "kids"] })
+    .notNull()
+    .default("group"),
+  level: integer("level"),
+  maxStudents: integer("max_students").notNull().default(4),
+  price: integer("price").notNull(),
+  schedule: text("schedule", { mode: "json" }).notNull().$type<{
+    daysOfWeek: number[];
+    startHour: number;
+    endHour: number;
+  }>(),
+  startDate: integer("start_date", { mode: "timestamp" }).notNull(),
+  endDate: integer("end_date", { mode: "timestamp" }),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const classEnrollments = sqliteTable("class_enrollments", {
+  id: text("id").primaryKey(),
+  classId: text("class_id")
+    .notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: text("status", { enum: ["active", "cancelled", "completed"] })
+    .notNull()
+    .default("active"),
+  enrolledAt: integer("enrolled_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// ─── Chat ────────────────────────────────────────────────────────────────
+
+export const chatMessages = sqliteTable("chat_messages", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  senderId: text("sender_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  receiverId: text("receiver_id")
+    .references(() => users.id, { onDelete: "cascade" }),
+  matchId: text("match_id")
+    .references(() => openMatches.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
 });
