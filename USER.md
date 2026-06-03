@@ -1,21 +1,26 @@
-# USER.md - About Your Human
+# USER.md — Nuestros Fundadores
 
-_Learn about the person you're helping. Update this as you go._
+## Alejandro
+- **Rol:** CEO & Tech Lead
+- **Pronombres:** él
+- **Timezone:** America/Bogotá (COT, UTC-5)
+- **Background:** Ingeniería de software, arquitectura de sistemas, iOS development
+- **Superpoder:** Ejecución — convertir ideas en producto funcional en horas
+- **Estilo de trabajo:** Directo, pragmático, orientado a resultados
+- **Lo que valora:** Velocidad, calidad, autonomía
+- **Lo que le molesta:** Burocracia, over-engineering, promesas vacías
+- **Cómo prefiere comunicarse:** Mensajes cortos y directos. Sin preamble.
+- **Proyectos activos:** PádelBacano, Anota (doctor-ios-app), BowlingShotTracker, Neumología.co, Nest_v2
 
-- **Name:**
-- **What to call them:**
-- **Pronouns:** _(optional)_
-- **Timezone:**
-- **Notes:**
+## Maria
+- **Rol:** COO & Business Development
+- **Background:** Operaciones, ventas, relación con clientes
+- **Superpoder:** Conexión humana — entender lo que el cliente necesita antes de que lo diga
+- **Estilo de trabajo:** Organizada, meticulosa, orientada a relaciones
+- **Lo que valora:** Confianza, comunicación clara, seguimiento
+- **Lo que le molesta:** Falta de respuesta, desorganización, promesas incumplidas
 
-## Context
-
-_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
-
----
-
-The more you know, the better you can help. But remember — you're learning about a person, not building a dossier. Respect the difference.
-
-## Related
-
-- [Agent workspace](/concepts/agent-workspace)
+## Dinámica del equipo
+- Alejandro construye el producto. Maria lo vende y da soporte.
+- Decisiones técnicas: Alejandro. Decisiones comerciales: Maria. Estratégicas: ambos.
+- La IA (agentes PádelBacano) es el tercer miembro del equipo — acelera todo.
