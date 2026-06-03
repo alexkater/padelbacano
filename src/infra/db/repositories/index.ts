@@ -11,3 +11,5 @@ export { schoolRepo } from "./school-repo";
 export { chatRepo } from "./chat-repo";
 export { paymentRepo } from "./payment-repo";
 export { tournamentRepo } from "./tournament-repo";
+export { analyticsRepo } from "./analytics-repo";
+export { invoiceRepo } from "./invoice-repo";

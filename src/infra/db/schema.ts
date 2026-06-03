@@ -510,7 +510,87 @@ export const tournamentMatches = sqliteTable("tournament_matches", {
   status: text("status", {
     enum: ["scheduled", "in_progress", "completed", "cancelled"],
   }).notNull().default("scheduled"),
+
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
+});
+
+// ─── Analytics cache ───────────────────────────────────────────────────────
+
+export const dailySummaries = sqliteTable("daily_summaries", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  date: integer("date", { mode: "timestamp" }).notNull(),
+  totalBookings: integer("total_bookings").notNull().default(0),
+  cancelledBookings: integer("cancelled_bookings").notNull().default(0),
+  occupancyPct: integer("occupancy_pct").notNull().default(0),
+  revenue: integer("revenue").notNull().default(0),
+  uniquePlayers: integer("unique_players").notNull().default(0),
+  avgDuration: integer("avg_duration").notNull().default(0),
+  peakHour: integer("peak_hour"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// ─── Invoices (Facturación Electrónica DIAN Colombia) ──────────────────────
+
+export const invoices = sqliteTable("invoices", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .notNull()
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  invoiceNumber: text("invoice_number").notNull(),
+  prefix: text("prefix").notNull().default("FE"),
+  consecutive: integer("consecutive").notNull(),
+  issueDate: integer("issue_date", { mode: "timestamp" }).notNull(),
+  dueDate: integer("due_date", { mode: "timestamp" }),
+  subtotal: integer("subtotal").notNull(),
+  taxRate: integer("tax_rate").notNull().default(1900),
+  taxAmount: integer("tax_amount").notNull(),
+  total: integer("total").notNull(),
+  currency: text("currency").notNull().default("COP"),
+  status: text("status", {
+    enum: ["draft", "issued", "paid", "cancelled", "dian_rejected"],
+  }).notNull().default("draft"),
+  customerName: text("customer_name").notNull(),
+  customerDocument: text("customer_document"),
+  customerDocumentType: text("customer_document_type", {
+    enum: ["CC", "NIT", "CE", "PP"],
+  }),
+  customerEmail: text("customer_email"),
+  customerPhone: text("customer_phone"),
+  customerAddress: text("customer_address"),
+  paymentMethod: text("payment_method"),
+  notes: text("notes"),
+  dianCufe: text("dian_cufe"),
+  dianXml: text("dian_xml"),
+  dianStatus: text("dian_status", {
+    enum: ["pending", "accepted", "rejected"],
+  }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const invoiceItems = sqliteTable("invoice_items", {
+  id: text("id").primaryKey(),
+  invoiceId: text("invoice_id")
+    .notNull()
+    .references(() => invoices.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  unitPrice: integer("unit_price").notNull(),
+  subtotal: integer("subtotal").notNull(),
+  bookingId: text("booking_id")
+    .references(() => bookings.id, { onDelete: "set null" }),
 });

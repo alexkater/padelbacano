@@ -1,0 +1,40 @@
+export type Invoice = {
+  id: string;
+  clubId: string;
+  userId: string;
+  invoiceNumber: string;
+  prefix: string;
+  consecutive: number;
+  issueDate: Date;
+  dueDate: Date | null;
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  total: number;
+  currency: string;
+  status: "draft" | "issued" | "paid" | "cancelled" | "dian_rejected";
+  customerName: string;
+  customerDocument: string | null;
+  customerDocumentType: "CC" | "NIT" | "CE" | "PP" | null;
+  customerEmail: string | null;
+  customerPhone: string | null;
+  customerAddress: string | null;
+  paymentMethod: string | null;
+  notes: string | null;
+  dianCufe?: string | null;
+  dianXml?: string | null;
+  dianStatus?: "pending" | "accepted" | "rejected" | null;
+  items?: InvoiceItem[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InvoiceItem = {
+  id: string;
+  invoiceId: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+  bookingId: string | null;
+};

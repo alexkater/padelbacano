@@ -15,3 +15,5 @@ export type { IChatRepository } from "./chat-repository";
 export type { IPaymentRepository } from "./payment-repository";
 export type { ITournamentRepository } from "./tournament-repository";
 export type { IPaymentGateway, PaymentResult, PaymentRequest } from "./payment-gateway";
+export type { IAnalyticsRepository } from "./analytics-repository";
+export type { IInvoiceRepository } from "./invoice-repository";

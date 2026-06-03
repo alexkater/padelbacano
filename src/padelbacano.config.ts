@@ -71,9 +71,9 @@ export const MODULE_FLAGS = {
   /** Escuela de pádel (gestión de clases, alumnos) */
   school: false,
   /** BI y analítica avanzada */
-  analytics: false,
+  analytics: true,
   /** Facturación electrónica DIAN (Colombia) */
-  invoicing: false,
+  invoicing: true,
   /** Tablón de comunidad + anuncios */
   social: true,
 } as const;
