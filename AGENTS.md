@@ -8,10 +8,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Project Context
 PádelBacano is a white-label SaaS platform for padel and tennis club management.
-- **Stack:** Next.js 16.2 + TypeScript + Tailwind v4 + SQLite/Drizzle + NextAuth v5 + Radix UI
+- **Stack:** Next.js 16.2 + TypeScript + Tailwind v4 + PostgreSQL/Drizzle + NextAuth v5 + Radix UI
 - **Architecture:** Clean architecture (entities → ports → use cases → infra) + feature-flagged modules
 - **Repo:** github.com/alexkater/padelbacano
-- **37 routes, 24 DB tables, ~8,500 LOC**
+- **37 routes, 25 DB tables, ~8,500 LOC**
+- **Pivot 2026-06:** Ahora compite directamente contra Playtomic en Colombia (marketplace de pádel). Ya no es white-label SaaS.
 
 ## How to Work on This Project
 
@@ -23,6 +24,12 @@ ALL files are owned by `openclaw-runner`. Use `sudo -u openclaw-runner` for ALL 
 cd /Users/openclaw-runner/padelbacano
 sudo -u openclaw-runner npx next build  # Must pass before ANY commit
 ```
+
+### Commit Rules (CRÍTICO)
+- **Commits atómicos por cada hito/milestone.** NO commits monolíticos tipo "everything works".
+- Agrupar cambios por capa lógica: DB → API → UI → PWA → tests.
+- Usar conventional commits: `feat(scope):`, `chore(scope):`, `fix(scope):`
+- Cada commit debe dejar el proyecto en estado compilable (`npm run build` y `npx vitest run` pasando).
 
 ### Architecture Rules
 - `padelbacano.config.ts` is the SINGLE file that changes per customer deployment
