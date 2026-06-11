@@ -24,6 +24,11 @@ export const metadata: Metadata = {
   description:
     "Plataforma de gestión de clubes de pádel y tenis. Reserva online, gestión de socios, torneos y más.",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: CLUB_CONFIG.shortName,
+    statusBarStyle: "default",
+  },
   openGraph: {
     title: CLUB_CONFIG.name,
     description: `Reserva tu pista de pádel en ${CLUB_CONFIG.shortName}, ${CLUB_CONFIG.location}`,
@@ -31,6 +36,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/icon.png",
+    apple: "/icon.png",
   },
 };
 
@@ -43,6 +49,17 @@ export default function RootLayout({
     <html lang="es" className={`${saira.variable} ${anton.variable} h-full`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>{children}</ThemeProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function () {
+                  navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function () {});
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
