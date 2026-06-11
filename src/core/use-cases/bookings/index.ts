@@ -1,6 +1,11 @@
 // ─── Bookings use cases barrel ─────────────────────────────────────────────
 
-export { createBooking, CreateBookingError } from "./create-booking";
+export {
+  createBooking,
+  CreateBookingError,
+  BookingConflictError,
+  bookingsOverlap,
+} from "./create-booking";
 export type { CreateBookingInput } from "./create-booking";
 
 export { cancelBooking, CancelBookingError } from "./cancel-booking";

@@ -39,7 +39,7 @@ export type Booking = {
  * Query parameters for listing bookings.
  */
 export type BookingFilters = {
-  clubId: string;
+  clubId?: string;
   date?: Date; // single day filter
   dateFrom?: Date;
   dateTo?: Date;

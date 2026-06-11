@@ -29,6 +29,24 @@ export class CreateBookingError extends Error {
   }
 }
 
+export class BookingConflictError extends Error {
+  constructor(message = "This time slot conflicts with an existing booking") {
+    super(message);
+    this.name = "BookingConflictError";
+  }
+}
+
+export function bookingsOverlap(
+  first: Pick<Booking, "courtId" | "startTime" | "endTime">,
+  second: Pick<Booking, "courtId" | "startTime" | "endTime">
+): boolean {
+  return (
+    first.courtId === second.courtId &&
+    first.startTime < second.endTime &&
+    first.endTime > second.startTime
+  );
+}
+
 type Dependencies = {
   bookingRepo: IBookingRepository;
   emailService: IEmailService;
@@ -63,18 +81,23 @@ export async function createBooking(
   // ── Calculate end time ────────────────────────────────────────────────
   const endTime = new Date(input.startTime.getTime() + input.duration * 60 * 1000);
 
-  // ── Check availability ────────────────────────────────────────────────
-  const isAvailable = await deps.bookingRepo.isSlotAvailable(
-    input.courtId,
-    input.startTime,
-    endTime
+  const existingBookings = await deps.bookingRepo.list({
+    courtId: input.courtId,
+    status: "confirmed",
+  });
+
+  const requestedSlot = {
+    courtId: input.courtId,
+    startTime: input.startTime,
+    endTime,
+  };
+
+  const hasConflict = existingBookings.some((booking) =>
+    bookingsOverlap(booking, requestedSlot)
   );
 
-  if (!isAvailable) {
-    throw new CreateBookingError(
-      "This time slot is no longer available",
-      "SLOT_UNAVAILABLE"
-    );
+  if (hasConflict) {
+    throw new BookingConflictError();
   }
 
   // ── Create booking ────────────────────────────────────────────────────
