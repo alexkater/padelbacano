@@ -63,19 +63,19 @@ export const THEME = {
 
 export const MODULE_FLAGS = {
   /** Torneos y competiciones */
-  tournaments: true,
+  tournaments: false,
   /** Pasarela de pagos (PSE, Nequi, tarjeta) */
-  payments: true,
+  payments: false,
   /** Programa de fidelización / puntos */
   loyalty: false,
   /** Escuela de pádel (gestión de clases, alumnos) */
   school: false,
   /** BI y analítica avanzada */
-  analytics: true,
+  analytics: false,
   /** Facturación electrónica DIAN (Colombia) */
-  invoicing: true,
+  invoicing: false,
   /** Tablón de comunidad + anuncios */
-  social: true,
+  social: false,
 } as const;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
