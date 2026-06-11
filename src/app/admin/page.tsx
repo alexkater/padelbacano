@@ -4,6 +4,8 @@ import { clubRepo, bookingRepo } from "@/infra/db/repositories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CancelBookingButton } from "@/components/cancel-booking-button";
 
+export const dynamic = "force-dynamic";
+
 
 export default async function AdminDashboard() {
   const club = await clubRepo.findBySlug(CLUB_CONFIG.slug);

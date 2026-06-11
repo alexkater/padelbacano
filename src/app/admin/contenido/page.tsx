@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function ContentEditorPage() {
-  const [heroTitle, setHeroTitle] = useState("El Remate Padel Club");
-  const [heroSubtitle, setHeroSubtitle] = useState("Tu club de pádel en Sevilla");
+  const [heroTitle, setHeroTitle] = useState(CLUB_CONFIG.name);
+  const [heroSubtitle, setHeroSubtitle] = useState(`Tu club de pádel en ${CLUB_CONFIG.location}`);
   const [heroDescription, setHeroDescription] = useState("11 pistas indoor de cristal cubiertas. Escuela de pádel, torneos y partidos nivelados todos los días.");
   const [about, setAbout] = useState("");
   const [prices, setPrices] = useState("No socios: 12 €/persona (90 min). Socios: 8 €/persona (90 min).");

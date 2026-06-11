@@ -67,7 +67,7 @@ export default function AppearancePage() {
           <CardHeader><CardTitle>Tipografía</CardTitle></CardHeader>
           <CardContent>
             <select value={fontFamily} onChange={(e) => setFontFamily(e.target.value)} className="w-full h-10 rounded-[var(--club-radius)] border border-[var(--club-border)] px-3 text-sm bg-white">
-              <option value="Saira">Saira (El Remate)</option>
+              <option value="Saira">Saira ({CLUB_CONFIG.shortName})</option>
               <option value="Inter">Inter (moderna)</option>
               <option value="Barlow">Barlow (deportiva)</option>
               <option value="Playfair Display">Playfair (clásica)</option>

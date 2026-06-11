@@ -2,6 +2,8 @@ import { CLUB_CONFIG } from "@/padelbacano.config";
 import { clubRepo, bookingRepo } from "@/infra/db/repositories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+export const dynamic = "force-dynamic";
+
 
 export default async function AdminCalendar() {
   const club = await clubRepo.findBySlug(CLUB_CONFIG.slug);

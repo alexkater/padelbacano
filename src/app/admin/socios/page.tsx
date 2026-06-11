@@ -3,6 +3,8 @@ import { clubRepo, userRepo } from "@/infra/db/repositories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+export const dynamic = "force-dynamic";
+
 export default async function MembersPage() {
   const club = await clubRepo.findBySlug(CLUB_CONFIG.slug);
   const members = club ? await userRepo.listClubMembers(club.id) : [];
