@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CLUB_CONFIG } from "@/padelbacano.config";
 
 export default function AdminLayout({
   children,
@@ -11,7 +12,7 @@ export default function AdminLayout({
       <aside className="w-64 border-r border-[var(--club-border)] bg-white flex-shrink-0 hidden md:flex flex-col">
         <div className="p-4 border-b border-[var(--club-border)]">
           <Link href="/admin" className="text-lg font-bold text-[var(--club-ink)]">
-            El Remate
+            {CLUB_CONFIG.shortName}
           </Link>
           <p className="text-xs text-[var(--club-ink-muted)]">Panel de Administración</p>
         </div>
@@ -19,11 +20,6 @@ export default function AdminLayout({
           {[
             { href: "/admin", label: "Dashboard", icon: "📊" },
             { href: "/admin/calendario", label: "Calendario", icon: "📅" },
-            { href: "/admin/socios", label: "Socios", icon: "👥" },
-            { href: "/admin/politicas", label: "Políticas", icon: "⚙️" },
-            { href: "/admin/anuncios", label: "Anuncios", icon: "📢" },
-            { href: "/admin/contenido", label: "Contenido", icon: "📝" },
-            { href: "/admin/apariencia", label: "Apariencia", icon: "🎨" },
           ].map((item) => (
             <Link
               key={item.href}
@@ -35,23 +31,14 @@ export default function AdminLayout({
             </Link>
           ))}
         </nav>
-        <div className="p-3 border-t border-[var(--club-border)]">
-          <Link
-            href="/"
-            className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)]"
-          >
-            ← Volver al Club
-          </Link>
-        </div>
       </aside>
 
       {/* Mobile nav */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-[var(--club-border)] bg-white">
         <div className="flex">
           {[
-            { href: "/admin", label: "Home", icon: "📊" },
-            { href: "/admin/calendario", label: "Calen.", icon: "📅" },
-            { href: "/admin/socios", label: "Socios", icon: "👥" },
+            { href: "/admin", label: "Dashboard", icon: "📊" },
+            { href: "/admin/calendario", label: "Calendario", icon: "📅" },
           ].map((item) => (
             <Link
               key={item.href}

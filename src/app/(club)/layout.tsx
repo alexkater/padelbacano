@@ -19,18 +19,13 @@ export default function ClubLayout({
       <header className="sticky top-0 z-40 border-b border-[var(--club-border)] bg-white/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
-            <img src="/logo.png" alt="El Remate" className="h-10 w-auto" />
+          <Link href="/clubes" className="flex items-center gap-3">
+            <img src="/logo.png" alt={CLUB_CONFIG.name} className="h-10 w-auto" />
           </Link>
 
           {/* Nav links */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="/#instalaciones" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Instalaciones</Link>
-            <Link href="/#precios" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Precios</Link>
-            <Link href="/#contacto" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Contacto</Link>
-            <Link href="/tablon" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Tablón</Link>
-            <Link href="/escuela" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Escuela</Link>
-            <Link href="/torneos" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Torneos</Link>
+            <Link href="/clubes" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Clubes</Link>
           </nav>
           {/* CTA */}
           <div className="flex items-center gap-3">
@@ -38,7 +33,7 @@ export default function ClubLayout({
               Perfil
             </Link>
             <Link href="/reservar">
-              <Button size="sm">Reservar Pista</Button>
+              <Button size="sm">Reservar</Button>
             </Link>
           </div>
         </div>
@@ -51,7 +46,7 @@ export default function ClubLayout({
       <footer className="border-t border-[var(--club-border)] bg-[var(--club-surface-alt)]">
         <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <img src="/logo.png" alt="El Remate" className="h-12 w-auto mb-3 opacity-80" />
+            <img src="/logo.png" alt={CLUB_CONFIG.name} className="h-12 w-auto mb-3 opacity-80" />
             <p className="text-sm text-[var(--club-ink-muted)]">
               11 pistas indoor de cristal cubiertas en Sevilla.
             </p>
@@ -72,7 +67,7 @@ export default function ClubLayout({
           </div>
         </div>
         <div className="border-t border-[var(--club-border)] py-4 text-center text-xs text-[var(--club-ink-muted)]">
-          © {new Date().getFullYear()} ${CLUB_CONFIG.name} — Powered by PádelBacano
+          © {new Date().getFullYear()} {CLUB_CONFIG.name} — Powered by PádelBacano
         </div>
       </footer>
     </div>

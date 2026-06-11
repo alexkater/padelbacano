@@ -1,7 +1,7 @@
 "use client";
 import { CLUB_CONFIG } from "@/padelbacano.config";
 
-import { useState } from "react";
+import { useState, type SyntheticEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,20 +10,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
+async function getPostLoginPath() {
+  try {
+    const response = await fetch("/api/user/profile", { cache: "no-store" });
+
+    if (!response.ok) return "/clubes";
+
+    const data = await response.json();
+    return data?.profile?.role === "admin" ? "/admin" : "/clubes";
+  } catch {
+    return "/clubes";
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     const result = await signIn("credentials", { email, password, redirect: false });
     if (result?.error) {
       setError("Email o contraseña incorrectos");
     } else {
-      router.push("/admin");
+      router.replace(await getPostLoginPath());
       router.refresh();
     }
   }

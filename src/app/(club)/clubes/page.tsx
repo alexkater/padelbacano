@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AnnouncementFeed } from "@/modules/social/components";
-import "../hero.css";
+import "../../hero.css";
+
+export const dynamic = "force-dynamic";
 
 export default async function LandingPage() {
   const club = await clubRepo.findBySlug(CLUB_CONFIG.slug);
@@ -18,11 +20,10 @@ export default async function LandingPage() {
     );
   }
 
-  const { content, courts, contact, pricing } = club;
+  const { content, courts, pricing } = club;
 
   return (
     <>
-      {/* Hero — matching original El Remate site */}
       <section className="relative hero-bg text-white overflow-hidden min-h-[500px] md:min-h-[600px] flex items-center">
         {/* Celeste overlay — left side */}
         <div className="absolute inset-0 hero-overlay z-10" />
@@ -31,7 +32,7 @@ export default async function LandingPage() {
           <div className="max-w-xl">
             {/* Small brand label */}
             <p className="text-xs md:text-sm tracking-[0.4em] uppercase text-white/60 mb-6 font-medium">
-              El Remate
+              {CLUB_CONFIG.shortName}
             </p>
             {/* Huge title — Anton display font */}
             <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl uppercase leading-[0.85] mb-6 tracking-[-0.02em]" style={{ fontFamily: "var(--font-display)" }}>
