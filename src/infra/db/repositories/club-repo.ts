@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { v4 as uuid } from "../uuid";
 import { db, schema } from "../index";
 import type { IClubRepository } from "@/core/ports/club-repository";
-import type { Club, ClubTheme, ClubContent } from "@/core/entities/club";
+import type { Club } from "@/core/entities/club";
 import type { Court } from "@/core/entities/court";
 
 function rowToClub(row: typeof schema.clubs.$inferSelect, courts: Court[] = []): Club {
@@ -38,50 +38,47 @@ function courtRowToEntity(row: typeof schema.courts.$inferSelect): Court {
 
 export const clubRepo: IClubRepository = {
   async findBySlug(slug: string) {
-    const row = db
+    const row = (await db
       .select()
       .from(schema.clubs)
       .where(eq(schema.clubs.slug, slug))
-      .get();
+      .limit(1))[0];
 
     if (!row) return null;
 
-    const courtRows = db
+    const courtRows = await db
       .select()
       .from(schema.courts)
-      .where(eq(schema.courts.clubId, row.id))
-      .all();
+      .where(eq(schema.courts.clubId, row.id));
 
     return rowToClub(row, courtRows.map(courtRowToEntity));
   },
 
   async findById(id: string) {
-    const row = db
+    const row = (await db
       .select()
       .from(schema.clubs)
       .where(eq(schema.clubs.id, id))
-      .get();
+      .limit(1))[0];
 
     if (!row) return null;
 
-    const courtRows = db
+    const courtRows = await db
       .select()
       .from(schema.courts)
-      .where(eq(schema.courts.clubId, row.id))
-      .all();
+      .where(eq(schema.courts.clubId, row.id));
 
     return rowToClub(row, courtRows.map(courtRowToEntity));
   },
 
   async listAll() {
-    const rows = db.select().from(schema.clubs).all();
+    const rows = await db.select().from(schema.clubs);
     return Promise.all(
       rows.map(async (row) => {
-        const courtRows = db
+        const courtRows = await db
           .select()
           .from(schema.courts)
-          .where(eq(schema.courts.clubId, row.id))
-          .all();
+          .where(eq(schema.courts.clubId, row.id));
         return rowToClub(row, courtRows.map(courtRowToEntity));
       })
     );
@@ -91,7 +88,7 @@ export const clubRepo: IClubRepository = {
     const id = uuid();
     const now = new Date();
 
-    db.insert(schema.clubs)
+    await db.insert(schema.clubs)
       .values({
         id,
         slug: input.slug,
@@ -103,66 +100,63 @@ export const clubRepo: IClubRepository = {
         content: input.content,
         createdAt: now,
         updatedAt: now,
-      })
-      .run();
+      });
 
-    const row = db
+    const row = (await db
       .select()
       .from(schema.clubs)
       .where(eq(schema.clubs.id, id))
-      .get()!;
+      .limit(1))[0]!;
 
     return rowToClub(row);
   },
 
   async updateTheme(clubId, theme) {
-    const current = db
+    const current = (await db
       .select()
       .from(schema.clubs)
       .where(eq(schema.clubs.id, clubId))
-      .get();
+      .limit(1))[0];
 
     if (!current) throw new Error(`Club ${clubId} not found`);
 
     const merged = { ...current.theme, ...theme };
     const now = new Date();
 
-    db.update(schema.clubs)
+    await db.update(schema.clubs)
       .set({ theme: merged, updatedAt: now })
-      .where(eq(schema.clubs.id, clubId))
-      .run();
+      .where(eq(schema.clubs.id, clubId));
 
-    const row = db
+    const row = (await db
       .select()
       .from(schema.clubs)
       .where(eq(schema.clubs.id, clubId))
-      .get()!;
+      .limit(1))[0]!;
 
     return rowToClub(row);
   },
 
   async updateContent(clubId, content) {
-    const current = db
+    const current = (await db
       .select()
       .from(schema.clubs)
       .where(eq(schema.clubs.id, clubId))
-      .get();
+      .limit(1))[0];
 
     if (!current) throw new Error(`Club ${clubId} not found`);
 
     const merged = { ...current.content, ...content };
     const now = new Date();
 
-    db.update(schema.clubs)
+    await db.update(schema.clubs)
       .set({ content: merged, updatedAt: now })
-      .where(eq(schema.clubs.id, clubId))
-      .run();
+      .where(eq(schema.clubs.id, clubId));
 
-    const row = db
+    const row = (await db
       .select()
       .from(schema.clubs)
       .where(eq(schema.clubs.id, clubId))
-      .get()!;
+      .limit(1))[0]!;
 
     return rowToClub(row);
   },
