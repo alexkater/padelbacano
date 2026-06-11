@@ -8,3 +8,5 @@ node_modules/
 dist/
 .openclaw/
 .claude/
+.npm-cache/
+.omo/
