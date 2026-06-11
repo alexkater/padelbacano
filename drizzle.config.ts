@@ -5,8 +5,8 @@ import { defineConfig } from "drizzle-kit";
 export default defineConfig({
   schema: "./src/infra/db/schema.ts",
   out: "./drizzle",
-  dialect: "sqlite",
+  dialect: "postgresql",
   dbCredentials: {
-    url: "file:./data/padel.db",
+    url: process.env.DATABASE_URL!,
   },
 });

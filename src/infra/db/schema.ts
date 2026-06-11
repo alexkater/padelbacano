@@ -1,41 +1,40 @@
-// ─── Drizzle schema — SQLite ───────────────────────────────────────────────
+// ─── Drizzle schema — PostgreSQL ───────────────────────────────────────────
 // Maps domain entities to database tables.
 // Keep in sync with src/core/entities/
 
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+import { pgTable, text, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 
 // ─── Clubs ──────────────────────────────────────────────────────────────
 
-export const clubs = sqliteTable("clubs", {
+export const clubs = pgTable("clubs", {
   id: text("id").primaryKey(),
   slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
-  pricing: text("pricing", { mode: "json" }).notNull().$type<{
+  pricing: jsonb("pricing").notNull().$type<{
     memberPrice: number;
     nonMemberPrice: number;
     currency: string;
   }>(),
-  theme: text("theme", { mode: "json" }).notNull().$type<{
+  theme: jsonb("theme").notNull().$type<{
     primaryColor: string;
     surfaceColor: string;
     fontFamily: string;
     logoUrl: string | null;
     borderRadius: "none" | "sm" | "md" | "lg";
   }>(),
-  cancellationPolicy: text("cancellation_policy", { mode: "json" }).notNull().$type<{
+  cancellationPolicy: jsonb("cancellation_policy").notNull().$type<{
     minHoursBefore: number;
     penaltyPercent: number;
     allowRefund: boolean;
   }>(),
-  contact: text("contact", { mode: "json" }).notNull().$type<{
+  contact: jsonb("contact").notNull().$type<{
     phone: string;
     email: string;
     whatsapp: string | null;
     address: string;
     googleMapsUrl: string | null;
   }>(),
-  content: text("content", { mode: "json" }).notNull().$type<{
+  content: jsonb("content").notNull().$type<{
     hero: {
       title: string;
       subtitle: string;
@@ -47,17 +46,17 @@ export const clubs = sqliteTable("clubs", {
     prices: string;
     openingHours: string;
   }>(),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .defaultNow(),
+  updatedAt: timestamp("updated_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── Courts ─────────────────────────────────────────────────────────────
 
-export const courts = sqliteTable("courts", {
+export const courts = pgTable("courts", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -66,30 +65,30 @@ export const courts = sqliteTable("courts", {
   courtType: text("court_type", { enum: ["glass", "panoramic", "wall"] })
     .notNull()
     .default("glass"),
-  indoor: integer("indoor", { mode: "boolean" }).notNull().default(true),
-  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  indoor: boolean("indoor").notNull().default(true),
+  isActive: boolean("is_active").notNull().default(true),
   order: integer("order").notNull().default(0),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── Users ──────────────────────────────────────────────────────────────
 
-export const users = sqliteTable("users", {
+export const users = pgTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   passwordHash: text("password_hash"),
   image: text("image"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── User profiles (per-club membership) ────────────────────────────────
 
-export const userProfiles = sqliteTable("user_profiles", {
+export const userProfiles = pgTable("user_profiles", {
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
@@ -106,14 +105,14 @@ export const userProfiles = sqliteTable("user_profiles", {
   displayName: text("display_name").notNull(),
   phone: text("phone"),
   level: integer("level"), // 1-7
-  joinedAt: integer("joined_at", { mode: "timestamp" })
+  joinedAt: timestamp("joined_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── Bookings ───────────────────────────────────────────────────────────
 
-export const bookings = sqliteTable("bookings", {
+export const bookings = pgTable("bookings", {
   id: text("id").primaryKey(),
   courtId: text("court_id")
     .notNull()
@@ -121,8 +120,8 @@ export const bookings = sqliteTable("bookings", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  startTime: integer("start_time", { mode: "timestamp" }).notNull(),
-  endTime: integer("end_time", { mode: "timestamp" }).notNull(),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
   duration: integer("duration").notNull(), // 60 or 90
   status: text("status", {
     enum: ["confirmed", "cancelled", "completed", "no_show"],
@@ -130,18 +129,18 @@ export const bookings = sqliteTable("bookings", {
     .notNull()
     .default("confirmed"),
   notes: text("notes"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .defaultNow(),
+  updatedAt: timestamp("updated_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 
 // ─── Announcements ─────────────────────────────────────────────────────────
 
-export const announcements = sqliteTable("announcements", {
+export const announcements = pgTable("announcements", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -151,18 +150,18 @@ export const announcements = sqliteTable("announcements", {
   type: text("type", { enum: ["general", "torneo", "escuela"] })
     .notNull()
     .default("general"),
-  isPublished: integer("is_published", { mode: "boolean" }).notNull().default(true),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  isPublished: boolean("is_published").notNull().default(true),
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .defaultNow(),
+  updatedAt: timestamp("updated_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── Partner posts (tablón "Busco Compañero") ──────────────────────────
 
-export const partnerPosts = sqliteTable("partner_posts", {
+export const partnerPosts = pgTable("partner_posts", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -174,13 +173,13 @@ export const partnerPosts = sqliteTable("partner_posts", {
   level: integer("level").notNull(),
   schedule: text("schedule").notNull(),
   notes: text("notes"),
-  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 
 });
-export const membershipPlans = sqliteTable("membership_plans", {
+export const membershipPlans = pgTable("membership_plans", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -192,20 +191,20 @@ export const membershipPlans = sqliteTable("membership_plans", {
   interval: text("interval", { enum: ["monthly", "quarterly", "yearly"] })
     .notNull()
     .default("monthly"),
-  benefits: text("benefits", { mode: "json" }).notNull().$type<{
+  benefits: jsonb("benefits").notNull().$type<{
     discountPercent: number;
     priorityBookingHours: number;
     maxBookingsPerDay: number;
     maxActiveBookings: number;
     guestPasses: number;
   }>(),
-  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
-export const userMemberships = sqliteTable("user_memberships", {
+export const userMemberships = pgTable("user_memberships", {
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
@@ -219,16 +218,16 @@ export const userMemberships = sqliteTable("user_memberships", {
   status: text("status", { enum: ["active", "cancelled", "expired"] })
     .notNull()
     .default("active"),
-  startDate: integer("start_date", { mode: "timestamp" }).notNull(),
-  endDate: integer("end_date", { mode: "timestamp" }).notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── Dynamic pricing ─────────────────────────────────────────────────────
 
-export const pricingRules = sqliteTable("pricing_rules", {
+export const pricingRules = pgTable("pricing_rules", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -239,15 +238,15 @@ export const pricingRules = sqliteTable("pricing_rules", {
   endHour: integer("end_hour"),
   memberPrice: integer("member_price").notNull(),
   nonMemberPrice: integer("non_member_price").notNull(),
-  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── Player levels (ELO-like) ────────────────────────────────────────────
 
-export const playerLevels = sqliteTable("player_levels", {
+export const playerLevels = pgTable("player_levels", {
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
@@ -259,14 +258,14 @@ export const playerLevels = sqliteTable("player_levels", {
   level: integer("level").notNull().default(1),
   matchesPlayed: integer("matches_played").notNull().default(0),
   matchesWon: integer("matches_won").notNull().default(0),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+  updatedAt: timestamp("updated_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── Open matches ────────────────────────────────────────────────────────
 
-export const openMatches = sqliteTable("open_matches", {
+export const openMatches = pgTable("open_matches", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -278,8 +277,8 @@ export const openMatches = sqliteTable("open_matches", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   title: text("title"),
-  startTime: integer("start_time", { mode: "timestamp" }).notNull(),
-  endTime: integer("end_time", { mode: "timestamp" }).notNull(),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
   duration: integer("duration").notNull(),
   minLevel: integer("min_level"),
   maxLevel: integer("max_level"),
@@ -290,12 +289,12 @@ export const openMatches = sqliteTable("open_matches", {
     .notNull()
     .default("open"),
   notes: text("notes"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
-export const openMatchPlayers = sqliteTable("open_match_players", {
+export const openMatchPlayers = pgTable("open_match_players", {
   id: text("id").primaryKey(),
   matchId: text("match_id")
     .notNull()
@@ -303,14 +302,14 @@ export const openMatchPlayers = sqliteTable("open_match_players", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  joinedAt: integer("joined_at", { mode: "timestamp" })
+  joinedAt: timestamp("joined_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── School / Academy ────────────────────────────────────────────────────
 
-export const coaches = sqliteTable("coaches", {
+export const coaches = pgTable("coaches", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -320,14 +319,14 @@ export const coaches = sqliteTable("coaches", {
   name: text("name").notNull(),
   bio: text("bio"),
   photoUrl: text("photo_url"),
-  specialties: text("specialties", { mode: "json" }).notNull().$type<string[]>(),
-  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  specialties: jsonb("specialties").notNull().$type<string[]>(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
-export const classes = sqliteTable("classes", {
+export const classes = pgTable("classes", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -345,20 +344,20 @@ export const classes = sqliteTable("classes", {
   level: integer("level"),
   maxStudents: integer("max_students").notNull().default(4),
   price: integer("price").notNull(),
-  schedule: text("schedule", { mode: "json" }).notNull().$type<{
+  schedule: jsonb("schedule").notNull().$type<{
     daysOfWeek: number[];
     startHour: number;
     endHour: number;
   }>(),
-  startDate: integer("start_date", { mode: "timestamp" }).notNull(),
-  endDate: integer("end_date", { mode: "timestamp" }),
-  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
-export const classEnrollments = sqliteTable("class_enrollments", {
+export const classEnrollments = pgTable("class_enrollments", {
   id: text("id").primaryKey(),
   classId: text("class_id")
     .notNull()
@@ -369,14 +368,14 @@ export const classEnrollments = sqliteTable("class_enrollments", {
   status: text("status", { enum: ["active", "cancelled", "completed"] })
     .notNull()
     .default("active"),
-  enrolledAt: integer("enrolled_at", { mode: "timestamp" })
+  enrolledAt: timestamp("enrolled_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── Chat ────────────────────────────────────────────────────────────────
 
-export const chatMessages = sqliteTable("chat_messages", {
+export const chatMessages = pgTable("chat_messages", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -389,15 +388,15 @@ export const chatMessages = sqliteTable("chat_messages", {
   matchId: text("match_id")
     .references(() => openMatches.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 
 });
 
 // ─── Payment methods ──────────────────────────────────────────────────────
 
-export const paymentMethods = sqliteTable("payment_methods", {
+export const paymentMethods = pgTable("payment_methods", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -406,14 +405,14 @@ export const paymentMethods = sqliteTable("payment_methods", {
     enum: ["pse", "nequi", "daviplata", "credit_card", "cash"],
   }).notNull(),
   name: text("name").notNull(),
-  isEnabled: integer("is_enabled", { mode: "boolean" }).notNull().default(true),
-  config: text("config", { mode: "json" }).$type<Record<string, string>>(),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  isEnabled: boolean("is_enabled").notNull().default(true),
+  config: jsonb("config").$type<Record<string, string>>(),
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
-export const transactions = sqliteTable("transactions", {
+export const transactions = pgTable("transactions", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -432,18 +431,18 @@ export const transactions = sqliteTable("transactions", {
     enum: ["pending", "completed", "failed", "refunded"],
   }).notNull().default("pending"),
   gatewayRef: text("gateway_ref"),
-  metadata: text("metadata", { mode: "json" }).$type<Record<string, unknown>>(),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .defaultNow(),
+  updatedAt: timestamp("updated_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── Tournaments ─────────────────────────────────────────────────────────
 
-export const tournaments = sqliteTable("tournaments", {
+export const tournaments = pgTable("tournaments", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -453,9 +452,9 @@ export const tournaments = sqliteTable("tournaments", {
   format: text("format", {
     enum: ["single_elimination", "round_robin", "americano", "mexicano"],
   }).notNull().default("single_elimination"),
-  startDate: integer("start_date", { mode: "timestamp" }).notNull(),
-  endDate: integer("end_date", { mode: "timestamp" }),
-  registrationDeadline: integer("registration_deadline", { mode: "timestamp" }),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  registrationDeadline: timestamp("registration_deadline"),
   minLevel: integer("min_level"),
   maxLevel: integer("max_level"),
   maxParticipants: integer("max_participants"),
@@ -465,15 +464,15 @@ export const tournaments = sqliteTable("tournaments", {
     enum: ["draft", "registration", "in_progress", "completed", "cancelled"],
   }).notNull().default("draft"),
   rules: text("rules"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .defaultNow(),
+  updatedAt: timestamp("updated_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
-export const tournamentRegistrations = sqliteTable("tournament_registrations", {
+export const tournamentRegistrations = pgTable("tournament_registrations", {
   id: text("id").primaryKey(),
   tournamentId: text("tournament_id")
     .notNull()
@@ -485,12 +484,12 @@ export const tournamentRegistrations = sqliteTable("tournament_registrations", {
     .notNull().default("pending"),
   paymentStatus: text("payment_status", { enum: ["unpaid", "paid"] })
     .notNull().default("unpaid"),
-  registeredAt: integer("registered_at", { mode: "timestamp" })
+  registeredAt: timestamp("registered_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
-export const tournamentMatches = sqliteTable("tournament_matches", {
+export const tournamentMatches = pgTable("tournament_matches", {
   id: text("id").primaryKey(),
   tournamentId: text("tournament_id")
     .notNull()
@@ -506,24 +505,24 @@ export const tournamentMatches = sqliteTable("tournament_matches", {
   score2: integer("score2"),
   winnerId: text("winner_id")
     .references(() => users.id, { onDelete: "set null" }),
-  startTime: integer("start_time", { mode: "timestamp" }),
+  startTime: timestamp("start_time"),
   status: text("status", {
     enum: ["scheduled", "in_progress", "completed", "cancelled"],
   }).notNull().default("scheduled"),
 
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── Analytics cache ───────────────────────────────────────────────────────
 
-export const dailySummaries = sqliteTable("daily_summaries", {
+export const dailySummaries = pgTable("daily_summaries", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
     .references(() => clubs.id, { onDelete: "cascade" }),
-  date: integer("date", { mode: "timestamp" }).notNull(),
+  date: timestamp("date").notNull(),
   totalBookings: integer("total_bookings").notNull().default(0),
   cancelledBookings: integer("cancelled_bookings").notNull().default(0),
   occupancyPct: integer("occupancy_pct").notNull().default(0),
@@ -531,14 +530,14 @@ export const dailySummaries = sqliteTable("daily_summaries", {
   uniquePlayers: integer("unique_players").notNull().default(0),
   avgDuration: integer("avg_duration").notNull().default(0),
   peakHour: integer("peak_hour"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
 // ─── Invoices (Facturación Electrónica DIAN Colombia) ──────────────────────
 
-export const invoices = sqliteTable("invoices", {
+export const invoices = pgTable("invoices", {
   id: text("id").primaryKey(),
   clubId: text("club_id")
     .notNull()
@@ -549,8 +548,8 @@ export const invoices = sqliteTable("invoices", {
   invoiceNumber: text("invoice_number").notNull(),
   prefix: text("prefix").notNull().default("FE"),
   consecutive: integer("consecutive").notNull(),
-  issueDate: integer("issue_date", { mode: "timestamp" }).notNull(),
-  dueDate: integer("due_date", { mode: "timestamp" }),
+  issueDate: timestamp("issue_date").notNull(),
+  dueDate: timestamp("due_date"),
   subtotal: integer("subtotal").notNull(),
   taxRate: integer("tax_rate").notNull().default(1900),
   taxAmount: integer("tax_amount").notNull(),
@@ -574,15 +573,15 @@ export const invoices = sqliteTable("invoices", {
   dianStatus: text("dian_status", {
     enum: ["pending", "accepted", "rejected"],
   }),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at")
     .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .defaultNow(),
+  updatedAt: timestamp("updated_at")
     .notNull()
-    .default(sql`(unixepoch())`),
+    .defaultNow(),
 });
 
-export const invoiceItems = sqliteTable("invoice_items", {
+export const invoiceItems = pgTable("invoice_items", {
   id: text("id").primaryKey(),
   invoiceId: text("invoice_id")
     .notNull()

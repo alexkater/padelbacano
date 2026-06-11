@@ -1,20 +1,11 @@
 // ─── Database connection singleton ─────────────────────────────────────────
 
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
+import { env } from "@/infra/env";
 
-const DB_PATH =
-  process.env.DATABASE_URL ?? "file:./data/padel.db";
+const client = postgres(env.DATABASE_URL);
 
-// Strip file: prefix for better-sqlite3
-const filePath = DB_PATH.replace(/^file:/, "");
-
-const sqlite = new Database(filePath);
-
-// Enable WAL mode for better concurrent reads
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
-
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(client, { schema });
 export { schema };

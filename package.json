@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "npx tsx seed.ts",
+    "seed": "npx tsx src/infra/db/seed.ts",
+    "db:seed": "npx tsx src/infra/db/seed.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push"
   },
@@ -20,7 +23,6 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
@@ -28,6 +30,7 @@
     "next": "16.2.6",
     "next-auth": "^5.0.0-beta.31",
     "nodemailer": "^7.0.13",
+    "postgres": "latest",
     "puppeteer": "^25.1.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -37,16 +40,18 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/nodemailer": "^8.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.8",
+    "drizzle-kit": "latest",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "tsx": "^4.22.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.8"
   },
   "description": "Plataforma de gestión para clubes de pádel y tenis"
 }
