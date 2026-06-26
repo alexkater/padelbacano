@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
     registrationDeadline: body.registrationDeadline ? new Date(body.registrationDeadline as string) : null,
     minLevel: (body.minLevel as number) ?? null, maxLevel: (body.maxLevel as number) ?? null,
     maxParticipants: (body.maxParticipants as number) ?? null,
+    level: (body.level as "open" | "A" | "B" | "C") || "open",
     entryFee: (body.entryFee as number) ?? null, prize: (body.prize as string) || null,
     status: "draft", rules: (body.rules as string) || null,
   });

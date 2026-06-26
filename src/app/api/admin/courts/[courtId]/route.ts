@@ -4,12 +4,12 @@ import { db, schema } from "@/infra/db/index";
 import { and, eq } from "drizzle-orm";
 
 /**
- * PUT /api/admin/courts/[id]
+ * PUT /api/admin/courts/[courtId]
  * Update a court. Admin can only modify courts in their club.
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ courtId: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id || session.user.role !== "club_admin") {
@@ -26,11 +26,11 @@ export async function PUT(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { id } = await params;
+  const { courtId } = await params;
   const court = (await db
     .select()
     .from(schema.courts)
-    .where(eq(schema.courts.id, id))
+    .where(eq(schema.courts.id, courtId))
     .limit(1))[0];
 
   if (!court || court.clubId !== profile.clubId) {
@@ -53,24 +53,24 @@ export async function PUT(
   await db
     .update(schema.courts)
     .set(updateData)
-    .where(eq(schema.courts.id, id));
+    .where(eq(schema.courts.id, courtId));
 
   const updated = (await db
     .select()
     .from(schema.courts)
-    .where(eq(schema.courts.id, id))
+    .where(eq(schema.courts.id, courtId))
     .limit(1))[0];
 
   return NextResponse.json({ court: updated });
 }
 
 /**
- * DELETE /api/admin/courts/[id]
+ * DELETE /api/admin/courts/[courtId]
  * Soft-delete a court. Only for admin's club courts with no future bookings.
  */
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ courtId: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id || session.user.role !== "club_admin") {
@@ -87,12 +87,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { id } = await params;
+  const { courtId } = await params;
 
   const court = (await db
     .select()
     .from(schema.courts)
-    .where(eq(schema.courts.id, id))
+    .where(eq(schema.courts.id, courtId))
     .limit(1))[0];
 
   if (!court || court.clubId !== profile.clubId) {
@@ -102,7 +102,7 @@ export async function DELETE(
   await db
     .update(schema.courts)
     .set({ isActive: false } as any)
-    .where(eq(schema.courts.id, id));
+    .where(eq(schema.courts.id, courtId));
 
   return NextResponse.json({ success: true });
 }
