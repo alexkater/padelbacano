@@ -1,9 +1,67 @@
 @import "tailwindcss";
 
 /* ─── White-label CSS custom properties ───────────────────────────── */
-/* El Remate Padel Club — default theme.                              */
+/* PádelBacano — default theme.                                    */
 
 :root {
+  --pb-surface-canvas: #F7FAF5;
+  --pb-surface-primary: #FFFFFF;
+  --pb-surface-secondary: #ECF4EA;
+  --pb-surface-elevated: #FFFFFF;
+  --pb-surface-inverse: #0B2418;
+  --pb-text-primary: #0B1F17;
+  --pb-text-secondary: #476255;
+  --pb-text-tertiary: #789084;
+  --pb-border-subtle: #DDE9DF;
+  --pb-border-strong: #B9CDBF;
+  --pb-brand-primary: #0E5B3A;
+  --pb-brand-hover: #0A442C;
+  --pb-brand-foreground: #FFFFFF;
+  --pb-energy-clay: #E66A2C;
+  --pb-energy-yellow: #F3B61F;
+  --pb-trust-verified: #1267E8;
+  --pb-status-success: #138A4B;
+  --pb-status-warning: #B77900;
+  --pb-status-error: #D92D20;
+  --pb-status-info: #2563EB;
+  --pb-overlay-scrim: rgba(7,17,13,0.56);
+  --pb-space-1: 4px;
+  --pb-space-2: 8px;
+  --pb-space-3: 12px;
+  --pb-space-4: 16px;
+  --pb-space-5: 20px;
+  --pb-space-6: 24px;
+  --pb-space-8: 32px;
+  --pb-space-10: 40px;
+  --pb-space-12: 48px;
+  --pb-space-16: 64px;
+  --pb-space-20: 80px;
+  --pb-layout-max: 1184px;
+  --pb-layout-wide: 1320px;
+  --pb-radius-xs: 6px;
+  --pb-radius-sm: 10px;
+  --pb-radius-md: 14px;
+  --pb-radius-lg: 20px;
+  --pb-radius-xl: 28px;
+  --pb-radius-full: 999px;
+  --pb-shadow-card: 0 1px 2px rgba(11,31,23,0.06), 0 8px 24px rgba(11,31,23,0.05);
+  --pb-shadow-action: 0 10px 30px rgba(14,91,58,0.18);
+  --pb-shadow-overlay: 0 18px 60px rgba(7,17,13,0.22);
+  --pb-ring-focus: 0 0 0 3px rgba(48,209,124,0.34);
+  --pb-motion-micro: 120ms;
+  --pb-motion-standard: 220ms;
+  --pb-motion-emphasis: 420ms;
+  --pb-motion-skeleton: 1400ms;
+  --pb-text-display: clamp(2.75rem, 7vw, 5rem);
+  --pb-text-h1: clamp(2rem, 4vw, 3.25rem);
+  --pb-text-h2: clamp(1.5rem, 3vw, 2.25rem);
+  --pb-text-h3: 1.25rem;
+  --pb-text-body-lg: 1.125rem;
+  --pb-text-body: 1rem;
+  --pb-text-body-sm: 0.875rem;
+  --pb-text-caption: 0.75rem;
+  --pb-text-overline: 0.6875rem;
+
   --club-primary: #1a3a2a;
   --club-primary-hover: #0f231a;
   --club-primary-foreground: #ffffff;
@@ -30,6 +88,20 @@
 /* ─── Tailwind v4 theme tokens ────────────────────────────────────── */
 
 @theme inline {
+  --color-pb-canvas: var(--pb-surface-canvas);
+  --color-pb-surface: var(--pb-surface-primary);
+  --color-pb-surface-secondary: var(--pb-surface-secondary);
+  --color-pb-ink: var(--pb-text-primary);
+  --color-pb-ink-secondary: var(--pb-text-secondary);
+  --color-pb-primary: var(--pb-brand-primary);
+  --color-pb-clay: var(--pb-energy-clay);
+  --color-pb-verified: var(--pb-trust-verified);
+  --radius-pb-md: var(--pb-radius-md);
+  --radius-pb-lg: var(--pb-radius-lg);
+  --radius-pb-xl: var(--pb-radius-xl);
+  --shadow-pb-card: var(--pb-shadow-card);
+  --shadow-pb-action: var(--pb-shadow-action);
+
   --color-background: var(--club-surface);
   --color-foreground: var(--club-ink);
   --color-primary: var(--club-primary);
@@ -45,6 +117,37 @@
   --radius-md: var(--club-radius);
   --radius-lg: var(--club-radius-lg);
   --radius-xl: var(--club-radius-xl);
+}
+
+@keyframes pb-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.pb-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.pb-shimmer::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(90deg, transparent, var(--pb-surface-primary), transparent);
+  opacity: 0.72;
+  transform: translateX(-100%);
+  animation: pb-shimmer var(--pb-motion-skeleton) ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pb-shimmer::after {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 /* ─── Base styles ─────────────────────────────────────────────────── */
