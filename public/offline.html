@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sin conexión — PádelBacano</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+    }
+    .shell-header {
+      display: flex; align-items: center; height: 4rem;
+      padding: 0 1.5rem; border-bottom: 1px solid #e5e5e5;
+      background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
+    }
+    .shell-header .brand {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 700; letter-spacing: -0.02em; color: #1a1a1a;
+    }
+    .shell-header .brand-icon {
+      display: grid; place-items: center; width: 2.25rem; height: 2.25rem;
+      border-radius: 0.375rem; background: #0F766E; color: #fff;
+      font-size: 1.125rem;
+    }
+    .offline-card {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 2.5rem 1.5rem; text-align: center;
+    }
+    .offline-card .icon {
+      width: 4rem; height: 4rem; margin-bottom: 1.5rem;
+      border-radius: 999px; background: #f0f0f0;
+      display: grid; place-items: center;
+      font-size: 2rem; line-height: 1;
+    }
+    .offline-card h1 {
+      font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;
+    }
+    .offline-card p {
+      font-size: 0.95rem; color: #5a5a5a; max-width: 24rem;
+      margin-bottom: 2rem; line-height: 1.5;
+    }
+    .offline-card .retry-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.625rem 1.5rem; border: none; border-radius: 999px;
+      background: #0F766E; color: #fff; font-size: 0.95rem;
+      font-weight: 600; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .offline-card .retry-btn:hover { background: #0B5E58; }
+    .offline-card .retry-btn:focus-visible {
+      outline: 2px solid #0F766E; outline-offset: 2px;
+    }
+    .shell-footer {
+      padding: 1.5rem; border-top: 1px solid #e5e5e5;
+      text-align: center; font-size: 0.75rem; color: #8a8a8a;
+    }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">&#x1F50D;</span>
+      <span>PádelBacano</span>
+    </div>
+  </header>
+
+  <main class="offline-card">
+    <div class="icon" aria-hidden="true">&#x26A0;</div>
+    <h1>Sin conexión</h1>
+    <p>
+      Parece que no tienes conexión a Internet en este momento.
+      Vuelve a intentarlo cuando estés conectado.
+    </p>
+    <button class="retry-btn" type="button" onclick="window.location.reload()">
+      Reintentar
+    </button>
+  </main>
+
+  <footer class="shell-footer">
+    &copy; 2026 PádelBacano &mdash; Colombia
+  </footer>
+</body>
+</html>
