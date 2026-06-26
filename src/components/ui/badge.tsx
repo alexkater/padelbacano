@@ -2,13 +2,14 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 function Badge({ className, variant = "default", ...props }: React.ComponentProps<"span"> & {
-  variant?: "default" | "outline" | "success" | "warning"
+  variant?: "default" | "outline" | "success" | "warning" | "error"
 }) {
   const variants = {
     default: "bg-[var(--club-primary)] text-[var(--club-primary-foreground)]",
     outline: "border border-[var(--club-border)] text-[var(--club-ink)]",
     success: "bg-[var(--club-primary)]/10 text-[var(--club-primary)]",
     warning: "bg-[var(--club-warning-bg)] text-[var(--club-warning)]",
+    error: "bg-[var(--club-danger-bg)] text-[var(--club-danger)]",
   }
   return (
     <span

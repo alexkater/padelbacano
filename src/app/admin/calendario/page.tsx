@@ -1,13 +1,28 @@
-import { CLUB_CONFIG } from "@/padelbacano.config";
 import { clubRepo, bookingRepo } from "@/infra/db/repositories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { auth } from "@/infra/auth/config";
+import { db, schema } from "@/infra/db/index";
+import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
 
 export default async function AdminCalendar() {
-  const club = await clubRepo.findBySlug(CLUB_CONFIG.slug);
-  const today = new Date();
+  const session = await auth();
+  const profile = session?.user?.id
+    ? (await db
+        .select()
+        .from(schema.userProfiles)
+        .where(eq(schema.userProfiles.userId, session.user.id))
+        .limit(1))[0]
+    : null;
+
+  const club = profile ? await clubRepo.findById(profile.clubId) : null;
+  const confirmedBookings = club ? await bookingRepo.list({ status: "confirmed" }) : [];
+  const firstClubBooking = confirmedBookings.find((booking) =>
+    club?.courts.some((court) => court.id === booking.courtId)
+  );
+  const today = firstClubBooking?.startTime ?? new Date();
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
   const todayBookings = club
@@ -62,7 +77,9 @@ export default async function AdminCalendar() {
                       return (
                         <td key={h} className={`py-1 px-1 border-b border-[var(--club-border)] text-center ${b ? "bg-[var(--club-primary)]/10" : ""}`}>
                           {isStart ? (
-                            <span className="text-[10px] font-medium px-1 py-0.5 rounded block truncate text-[var(--club-primary)]">{b.duration}min</span>
+                            <button data-booking-id={b.id} className="text-[10px] font-medium px-1 py-0.5 rounded block w-full truncate text-[var(--club-primary)]">
+                              Reserva {b.startTime.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })} · {b.duration}min
+                            </button>
                           ) : b ? (
                             <span className="block h-full" />
                           ) : null}

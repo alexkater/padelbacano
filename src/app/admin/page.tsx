@@ -1,8 +1,12 @@
 import { CLUB_CONFIG } from "@/padelbacano.config";
 import Link from "next/link";
+import { asc, eq } from "drizzle-orm";
 import { clubRepo, bookingRepo } from "@/infra/db/repositories";
+import { db, schema } from "@/infra/db/index";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CancelBookingButton } from "@/components/cancel-booking-button";
+import { AdminCreateCourt } from "@/components/admin-create-court";
+import { AdminMaintenanceBlocks } from "@/components/admin-maintenance-blocks";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +19,23 @@ export default async function AdminDashboard() {
   const todayBookings = club
     ? await bookingRepo.listByDate(club.id, todayStart)
     : [];
+  const activeCourts = club?.courts.filter((court) => court.isActive) ?? [];
+  const maintenanceRows = club
+    ? await db
+        .select({ block: schema.maintenanceBlocks, courtName: schema.courts.name })
+        .from(schema.maintenanceBlocks)
+        .innerJoin(schema.courts, eq(schema.maintenanceBlocks.courtId, schema.courts.id))
+        .where(eq(schema.courts.clubId, club.id))
+        .orderBy(asc(schema.maintenanceBlocks.startTime))
+    : [];
+  const maintenanceBlocks = maintenanceRows.map((row) => ({
+    id: row.block.id,
+    courtId: row.block.courtId,
+    courtName: row.courtName,
+    startTime: row.block.startTime.toISOString(),
+    endTime: row.block.endTime.toISOString(),
+    reason: row.block.reason,
+  }));
 
   const confirmed = todayBookings.filter((b) => b.status === "confirmed").length;
   const cancelled = todayBookings.filter((b) => b.status === "cancelled").length;
@@ -25,6 +46,11 @@ export default async function AdminDashboard() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-[var(--club-ink)] mb-6">Dashboard</h1>
+      <AdminCreateCourt />
+      <AdminMaintenanceBlocks
+        courts={activeCourts.map((court) => ({ id: court.id, name: court.name }))}
+        initialBlocks={maintenanceBlocks}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
