@@ -1,12 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { invoiceRepo, clubRepo } from "@/infra/db/repositories";
 import { CLUB_CONFIG } from "@/padelbacano.config";
+import { auth } from "@/infra/auth/config";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const club = await clubRepo.findBySlug(CLUB_CONFIG.slug);
   if (!club) return NextResponse.json({ error: "Club not found" }, { status: 404 });
-  const invoices = await invoiceRepo.listByClub(club.id);
-  return NextResponse.json({ invoices });
+
+  const { searchParams } = new URL(request.url);
+  const status = searchParams.get("status");
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
+  const offset = Math.max(0, parseInt(searchParams.get("offset") ?? "0", 10) || 0);
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") ?? "20", 10) || 20));
+
+  const result = await invoiceRepo.listByClubFiltered(club.id, {
+    status: status || undefined,
+    from: from || undefined,
+    to: to || undefined,
+    offset,
+    limit,
+  });
+
+  return NextResponse.json(result);
 }
 
 export async function POST(request: NextRequest) {
@@ -26,7 +47,7 @@ export async function POST(request: NextRequest) {
   const invoice = await invoiceRepo.create({
     clubId: club.id, userId: (body.userId as string) || guestId,
     invoiceNumber: `${prefix}-${String(consecutive).padStart(5, "0")}`,
-    prefix, consecutive,
+    prefix, consecutive, nit: null,
     issueDate: new Date(), dueDate: body.dueDate ? new Date(body.dueDate as string) : null,
     subtotal, taxRate, taxAmount, total, currency: "COP", status: "draft",
     customerName: (body.customerName as string) || "Cliente",
