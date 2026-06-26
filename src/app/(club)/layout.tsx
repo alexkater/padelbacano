@@ -1,75 +1,54 @@
-import { CLUB_CONFIG } from "@/padelbacano.config";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { headers } from "next/headers";
+import { ClubShell } from "./club-shell";
+import { resolvePublicClubProfile } from "@/infra/tenant/public-club-profile-service";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: `${CLUB_CONFIG.name} — ${CLUB_CONFIG.location}`,
-  description: "Gestiona tu club de pádel con PádelBacano.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const requestHeaders = await headers();
+  const profile = await resolvePublicClubProfile({ headers: requestHeaders });
 
-export default function ClubLayout({
+  const name = profile.config.name;
+  const city = profile.config.city;
+  const description =
+    profile.club?.content.hero.description ?? `Reserva tu pista de pádel en ${name}, ${city}. Club verificado en PádelBacano.`;
+  const heroImage = profile.config.contact.heroImageUrl;
+
+  return {
+    title: {
+      default: `${name} — Pádel en ${city}`,
+      template: `%s | ${name} — ${city}`,
+    },
+    description,
+    openGraph: {
+      title: `${name} — Pádel en ${city}`,
+      description,
+      images: heroImage
+        ? [{ url: heroImage, width: 1200, height: 630, alt: name }]
+        : [{ url: "/og-image.jpg", width: 1200, height: 630, alt: name }],
+      locale: "es_CO",
+      type: "website",
+      siteName: name,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${name} — Pádel en ${city}`,
+      description,
+      images: heroImage ? [heroImage] : ["/og-image.jpg"],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
+
+export default async function ClubLayout({
   children,
 }: {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen flex flex-col">
-      {/* ─── Header / Nav ─────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-[var(--club-border)] bg-white/80 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/clubes" className="flex items-center gap-3">
-            <img src="/logo.png" alt={CLUB_CONFIG.name} className="h-10 w-auto" />
-          </Link>
+  const requestHeaders = await headers();
+  const profile = await resolvePublicClubProfile({ headers: requestHeaders });
 
-          {/* Nav links */}
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/clubes" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] transition-colors">Clubes</Link>
-          </nav>
-          {/* CTA */}
-          <div className="flex items-center gap-3">
-            <Link href="/perfil" className="text-sm text-[var(--club-ink-muted)] hover:text-[var(--club-ink)] hidden md:block">
-              Perfil
-            </Link>
-            <Link href="/reservar">
-              <Button size="sm">Reservar</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* ─── Page content ──────────────────────────────────────────── */}
-      <main className="flex-1">{children}</main>
-
-      {/* ─── Footer ────────────────────────────────────────────────── */}
-      <footer className="border-t border-[var(--club-border)] bg-[var(--club-surface-alt)]">
-        <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <img src="/logo.png" alt={CLUB_CONFIG.name} className="h-12 w-auto mb-3 opacity-80" />
-            <p className="text-sm text-[var(--club-ink-muted)]">
-              11 pistas indoor de cristal cubiertas en Sevilla.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-semibold text-[var(--club-ink)] mb-3">Contacto</h4>
-            <div className="text-sm text-[var(--club-ink-muted)] space-y-1">
-              <p>📞 619 81 74 51</p>
-              <p>📧 elrematepadelclub@gmail.com</p>
-              <p>📍 Av. Montes Sierra, 38 — Sevilla 41007</p>
-            </div>
-          </div>
-          <div>
-            <h4 className="font-semibold text-[var(--club-ink)] mb-3">Horario</h4>
-            <p className="text-sm text-[var(--club-ink-muted)]">
-              Lunes a domingo: 9:00 – 00:00
-            </p>
-          </div>
-        </div>
-        <div className="border-t border-[var(--club-border)] py-4 text-center text-xs text-[var(--club-ink-muted)]">
-          © {new Date().getFullYear()} {CLUB_CONFIG.name} — Powered by PádelBacano
-        </div>
-      </footer>
-    </div>
-  );
+  return <ClubShell profile={profile}>{children}</ClubShell>;
 }

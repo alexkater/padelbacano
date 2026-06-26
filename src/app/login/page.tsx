@@ -1,30 +1,35 @@
 "use client";
 import { CLUB_CONFIG } from "@/padelbacano.config";
 
-import { useState, type SyntheticEvent } from "react";
+import { useState, Suspense, type SyntheticEvent } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-async function getPostLoginPath() {
+async function getPostLoginPath(callbackUrl: string | null) {
+  if (callbackUrl) return callbackUrl;
+
   try {
     const response = await fetch("/api/user/profile", { cache: "no-store" });
 
     if (!response.ok) return "/clubes";
 
     const data = await response.json();
-    return data?.profile?.role === "admin" ? "/admin" : "/clubes";
+    const isAdmin = data?.profile?.role === "admin" || data?.session?.role === "club_admin";
+    return isAdmin ? "/admin" : "/clubes";
   } catch {
     return "/clubes";
   }
 }
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -36,7 +41,8 @@ export default function LoginPage() {
     if (result?.error) {
       setError("Email o contraseña incorrectos");
     } else {
-      router.replace(await getPostLoginPath());
+      const path = await getPostLoginPath(callbackUrl);
+      router.replace(path);
       router.refresh();
     }
   }
@@ -68,5 +74,17 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[var(--club-surface)] px-4">
+        <div className="animate-spin h-8 w-8 border-2 border-[var(--club-border)] border-t-[var(--club-primary)] rounded-full" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

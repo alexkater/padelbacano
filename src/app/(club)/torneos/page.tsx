@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MODULE_FLAGS } from "@/padelbacano.config";
+import { useClubTenant } from "@/components/club/club-tenant-provider";
 
 type Tournament = { id: string; name: string; description: string | null; format: string; startDate: string; status: string; registrationCount: number; maxParticipants: number | null; entryFee: number | null; minLevel: number | null; maxLevel: number | null; prize: string | null };
 
 const FORMAT_LABELS: Record<string, string> = { single_elimination: "Eliminación Directa", round_robin: "Round Robin", americano: "Americano", mexicano: "Mexicano" };
 
 export default function TournamentsPage() {
+  const tenant = useClubTenant();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,7 +19,7 @@ export default function TournamentsPage() {
 
   async function handleRegister(id: string) { await fetch(`/api/tournaments/${id}/register`, { method: "POST" }); const res = await fetch("/api/tournaments"); if (res.ok) { const d = await res.json(); setTournaments(d.tournaments); } }
 
-  if (!MODULE_FLAGS.tournaments) return <div className="max-w-6xl mx-auto px-4 py-8"><Card><CardContent><p className="text-sm text-[var(--club-ink-muted)] py-8 text-center">El módulo de torneos no está disponible en este club.</p></CardContent></Card></div>;
+  if (!tenant.modules.tournaments) return <div className="max-w-6xl mx-auto px-4 py-8"><Card><CardContent><p className="text-sm text-[var(--club-ink-muted)] py-8 text-center">El módulo de torneos no está disponible en este club.</p></CardContent></Card></div>;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">

@@ -1,11 +1,13 @@
 "use client";
 
-import { MODULE_FLAGS } from "@/padelbacano.config";
 import { PartnerBoard } from "@/modules/social/components";
 import { Card, CardContent } from "@/components/ui/card";
+import { useClubTenant } from "@/components/club/club-tenant-provider";
 
 export default function PartnerBoardPage() {
-  if (!MODULE_FLAGS.social) {
+  const tenant = useClubTenant();
+
+  if (!tenant.modules.social) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Card>
