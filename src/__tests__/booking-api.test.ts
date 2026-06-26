@@ -38,7 +38,7 @@ const activeClub: Club = {
   pricing: {
     memberPrice: 1800,
     nonMemberPrice: 2400,
-    currency: "EUR",
+    currency: "COP",
   },
   theme: {
     primaryColor: "#1a3a2a",

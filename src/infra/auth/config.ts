@@ -4,17 +4,42 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { compare } from "bcryptjs";
-import { clubRepo, userRepo } from "@/infra/db/repositories";
+import { userRepo } from "@/infra/db/repositories/user-repo";
 import { env } from "@/infra/env";
-import { CLUB_CONFIG } from "@/padelbacano.config";
 import { profileRoleToAuthRole, type AuthRole } from "./roles";
 
-async function getUserRole(userId: string): Promise<AuthRole> {
-  const club = await clubRepo.findBySlug(CLUB_CONFIG.slug);
-  if (!club) return "player";
+type SessionTenantAccess = {
+  readonly role: AuthRole;
+  readonly clubId?: string;
+  readonly profileId?: string;
+};
 
-  const profile = await userRepo.getProfile(userId, club.id);
-  return profileRoleToAuthRole(profile?.role);
+async function getUserAccess(userId: string): Promise<SessionTenantAccess> {
+  const profiles = await userRepo.listProfiles(userId);
+  const adminProfile = profiles.find((profile) => profile.role === "admin");
+  const profile = adminProfile ?? profiles[0];
+
+  if (!profile) {
+    return { role: "player" };
+  }
+
+  return {
+    role: profileRoleToAuthRole(profile.role),
+    clubId: profile.clubId,
+    profileId: profile.id,
+  };
+}
+
+function tokenRole(value: unknown): AuthRole {
+  if (value === "club_admin" || value === "platform_admin" || value === "player") {
+    return value;
+  }
+
+  return "player";
+}
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
 }
 
 const googleProviders =
@@ -65,15 +90,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id as string;
       }
       const userId = typeof token.id === "string" ? token.id : undefined;
-      if (userId) {
-        token.role = await getUserRole(userId);
+      if (userId && (user || !token.role || !token.clubId || !token.profileId)) {
+        const access = await getUserAccess(userId);
+        token.role = access.role;
+        token.clubId = access.clubId;
+        token.profileId = access.profileId;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role === "club_admin" ? "club_admin" : "player";
+        session.user.role = tokenRole(token.role);
+        session.user.clubId = optionalString(token.clubId);
+        session.user.profileId = optionalString(token.profileId);
       }
       return session;
     },

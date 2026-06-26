@@ -5,10 +5,13 @@ import { CLUB_CONFIG } from "@/padelbacano.config";
 
 export async function GET() {
   const session = await auth();
+  const sessionData = {
+    role: session?.user?.role ?? "guest",
+  };
 
   if (!session?.user?.id) {
-    // Return guest profile if not authenticated
     return NextResponse.json({
+      session: sessionData,
       profile: {
         displayName: "Jugador",
         level: null,
@@ -22,15 +25,26 @@ export async function GET() {
 
   const club = await clubRepo.findBySlug(CLUB_CONFIG.slug);
   if (!club) {
-    return NextResponse.json({ error: "Club not found" }, { status: 404 });
+    const user = await userRepo.findById(session.user.id);
+    return NextResponse.json({
+      session: sessionData,
+      profile: {
+        displayName: user?.name || "Jugador",
+        level: null,
+        memberType: "non_member",
+        role: session.user.role === "club_admin" ? "admin" : "guest",
+        phone: null,
+        joinedAt: new Date().toISOString(),
+      },
+    });
   }
 
   const profile = await userRepo.getProfile(session.user.id, club.id);
 
   if (!profile) {
-    // User exists but has no profile in this club
     const user = await userRepo.findById(session.user.id);
     return NextResponse.json({
+      session: sessionData,
       profile: {
         displayName: user?.name || "Jugador",
         level: null,
@@ -43,6 +57,7 @@ export async function GET() {
   }
 
   return NextResponse.json({
+    session: sessionData,
     profile: {
       displayName: profile.displayName,
       level: profile.level,

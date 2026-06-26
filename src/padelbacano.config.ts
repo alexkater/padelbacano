@@ -1,6 +1,8 @@
-// ─── PádelBacano — Configuración central por instancia ─────────────────────
-// Este es el ÚNICO archivo que cambia entre despliegues de cliente.
-// Todo el resto del código consume de aquí.
+// ─── PádelBacano — Bootstrap/fallback config legacy ─────────────────────────
+// DEPRECATED para runtime marketplace: la fuente de verdad es la tabla DB
+// `club_configs` vía ClubConfigPort/TenantContext. Este archivo queda solo para
+// bootstrap local, demos legacy single-club y fallback explícito durante migración.
+// Mantener exports existentes por compatibilidad temporal.
 //
 // Para vender a un club nuevo:
 //   1. Cambiar los valores de abajo
@@ -10,22 +12,22 @@
 
 export const CLUB_CONFIG = {
   /** Slug URL del club (usado en rutas, API calls, DB lookup) */
-  slug: "el-remate" as string,
+  slug: "club-bogota" as string,
 
   /** Nombre comercial completo */
-  name: "El Remate Padel Club" as string,
+  name: "PádelBacano" as string,
 
   /** Nombre corto para headers, títulos */
-  shortName: "El Remate" as string,
+  shortName: "PádelBacano" as string,
 
   /** Ciudad / ubicación principal */
-  location: "Sevilla" as string,
+  location: "Colombia" as string,
 
   /** Email from para envíos (SMTP_FROM en prod) */
-  fromEmail: "noreply@elrematepadel.com" as string,
+  fromEmail: "noreply@padelbacano.com" as string,
 
   /** Dominio principal (usado para metadata, OG tags) */
-  domain: "elrematepadel.com" as string,
+  domain: "padelbacano.com" as string,
 } as const;
 
 // ─── Theme ──────────────────────────────────────────────────────────────────
@@ -60,22 +62,41 @@ export const THEME = {
 } as const;
 
 // ─── Module flags ───────────────────────────────────────────────────────────
+// Audit 2026-06-24: each flag reflects whether the module has real (non-stub)
+// implementation — ports, entities, DB schema, API routes, and admin UI.
+// Flags are fallback defaults; marketplace tenants override via club_configs.modules.
+//
+// Activation criteria: port + entity + DB schema + API route + admin page exist.
+// Deactivation criteria: truly nothing implemented (stub only).
 
 export const MODULE_FLAGS = {
-  /** Torneos y competiciones */
-  tournaments: false,
-  /** Pasarela de pagos (PSE, Nequi, tarjeta) */
-  payments: false,
-  /** Programa de fidelización / puntos */
+  /** Tablón de comunidad + anuncios + partidos abiertos
+   *  STATUS: ACTIVATED — 4 UI components, 3 API routes, DB tables, admin page */
+  social: true,
+  /** Torneos y competiciones (CRUD, sin bracket engine aún)
+   *  STATUS: ACTIVATED — ITournamentPort, DB schema (4 tables), API CRUD, admin page
+   *  PENDING: bracket engine (T38-T39, Wave 6) */
+  tournaments: true,
+  /** Pasarela de pagos (PSE, Nequi, Daviplata, tarjeta, efectivo)
+   *  STATUS: ACTIVATED — 5 gateway implementations (demo mode), API process/methods/revenue, admin page
+   *  PENDING: real API integration (ePayco/PayU/Wompi) */
+  payments: true,
+  /** Escuela de pádel (gestión de clases, alumnos, entrenadores)
+   *  STATUS: ACTIVATED — school-repo, DB schema (coaches, classes, enrollments), API routes
+   *  PENDING: admin UI page for school management */
+  school: true,
+  /** BI y analítica avanzada
+   *  STATUS: ACTIVATED — analytics-repo, daily_summaries table, API overview, admin dashboard
+   *  PENDING: advanced charts, export, real-time (Wave 7) */
+  analytics: true,
+  /** Facturación electrónica DIAN (Colombia)
+   *  STATUS: ACTIVATED — InvoicePort, DB schema (invoices, invoice_items), API CRUD + PDF, admin page
+   *  PENDING: DIAN XML/CUFE signing (T34, Wave 5) */
+  invoicing: true,
+  /** Programa de fidelización / puntos
+   *  STATUS: NOT ACTIVATED — no port, no entity, no schema, no API, no UI.
+   *  Requires: loyalty entity + port + schema + API + admin page (v2) */
   loyalty: false,
-  /** Escuela de pádel (gestión de clases, alumnos) */
-  school: false,
-  /** BI y analítica avanzada */
-  analytics: false,
-  /** Facturación electrónica DIAN (Colombia) */
-  invoicing: false,
-  /** Tablón de comunidad + anuncios */
-  social: false,
 } as const;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
