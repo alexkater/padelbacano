@@ -11,5 +11,6 @@ export interface ITournamentRepository {
   getRegistrations(tournamentId: string): Promise<TournamentRegistration[]>;
   createMatch(input: Omit<TournamentMatch, "id" | "createdAt">): Promise<TournamentMatch>;
   updateMatchResult(matchId: string, score1: number, score2: number, winnerId: string): Promise<TournamentMatch>;
+  updateMatchPlayers(matchId: string, player1Id: string | null, player2Id: string | null): Promise<TournamentMatch>;
   listMatches(tournamentId: string): Promise<TournamentMatch[]>;
 }

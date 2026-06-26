@@ -15,6 +15,8 @@ export interface IUserRepository {
   /** Get user's profile within a specific club */
   getProfile(userId: string, clubId: string): Promise<UserProfile | null>;
 
+  listProfiles(userId: string): Promise<UserProfile[]>;
+
   /** Create or update a user's profile within a club */
   upsertProfile(profile: Omit<UserProfile, "id" | "joinedAt">): Promise<UserProfile>;
 

@@ -4,6 +4,8 @@ export type TournamentFormat = (typeof TOURNAMENT_FORMATS)[number];
 export const TOURNAMENT_STATUSES = ["draft", "registration", "in_progress", "completed", "cancelled"] as const;
 export type TournamentStatus = (typeof TOURNAMENT_STATUSES)[number];
 
+export type TournamentLevel = "open" | "A" | "B" | "C";
+
 export type Tournament = {
   id: string;
   clubId: string;
@@ -13,6 +15,7 @@ export type Tournament = {
   startDate: Date;
   endDate: Date | null;
   registrationDeadline: Date | null;
+  level: TournamentLevel;
   minLevel: number | null;
   maxLevel: number | null;
   maxParticipants: number | null;

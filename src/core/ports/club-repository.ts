@@ -4,7 +4,7 @@
 import type { Club, ClubTheme, ClubContent } from "../entities/club";
 
 export interface IClubRepository {
-  /** Get club by its URL slug (e.g. "el-remate") */
+  /** Get club by its URL slug (e.g. "club-bogota") */
   findBySlug(slug: string): Promise<Club | null>;
 
   /** Get club by ID */

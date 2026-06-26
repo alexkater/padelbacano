@@ -19,6 +19,7 @@ export type Invoice = {
   customerEmail: string | null;
   customerPhone: string | null;
   customerAddress: string | null;
+  nit: string | null;
   paymentMethod: string | null;
   notes: string | null;
   dianCufe?: string | null;

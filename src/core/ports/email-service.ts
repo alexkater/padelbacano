@@ -26,4 +26,10 @@ export interface IEmailService {
     date: string;
     time: string;
   }): Promise<boolean>;
+
+  /** Send a club rejection notification */
+  sendClubRejectionNotice(userEmail: string, details: {
+    clubName: string;
+    reason: string;
+  }): Promise<boolean>;
 }

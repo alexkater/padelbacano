@@ -23,3 +23,32 @@ export type { Tournament, TournamentRegistration, TournamentMatch, TournamentFor
 export { TOURNAMENT_FORMATS, TOURNAMENT_STATUSES } from "./tournament";
 export type { DailySummary, AnalyticsOverview, RevenueReport } from "./analytics";
 export type { Invoice, InvoiceItem } from "./invoice";
+export type {
+  SearchFilters,
+  ClubSearchResult,
+  ClubPublicDetail,
+  ClubPublicCourt,
+  ClubPublicPricing,
+  ClubPublicCancellationPolicy,
+  CourtAvailabilitySlot,
+  CourtAvailability,
+  MaintenanceBlock,
+  SearchFacet,
+  PageInfo,
+  SearchResponse,
+} from "./marketplace";
+export type { MarketplaceSearchPort } from "./marketplace";
+export type {
+  OnboardingStep1,
+  OnboardingCourt,
+  OnboardingStep2,
+  OnboardingPricingEntry,
+  OnboardingStep3,
+  OnboardingStep4,
+  OnboardingStaffMember,
+  OnboardingStep5,
+  OnboardingStep6,
+  OnboardingSubmission,
+  OnboardingStatus,
+  OnboardingResponse,
+} from "./onboarding";

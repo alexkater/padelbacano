@@ -29,4 +29,24 @@ export type RevenueReport = {
   total: number;
   byMethod: { method: string; amount: number }[];
   byDay: { date: string; amount: number }[];
+  byMonth: { month: string; amount: number }[];
+};
+
+export type OccupancyReport = {
+  period: { from: Date; to: Date };
+  overallPct: number;
+  byHour: { hour: number; pct: number; bookings: number }[];
+  byCourt: { name: string; pct: number; bookings: number }[];
+};
+
+/** Comparison between two periods (e.g. this month vs last month) */
+export type PeriodComparison<T> = {
+  current: T;
+  previous: T | null;
+  changes: {
+    totalRevenue: number | null;
+    totalBookings: number | null;
+    occupancyPct: number | null;
+    activeMembers: number | null;
+  } | null;
 };
