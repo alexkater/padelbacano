@@ -1,11 +1,11 @@
 // ─── Booking repository — Drizzle/SQLite implementation ────────────────────
 
-import { eq, and, gte, lte, sql } from "drizzle-orm";
+import { eq, and, gte, lte, sql, lt, gt, ne } from "drizzle-orm";
 import { v4 as uuid } from "../uuid";
 import { db, schema } from "../index";
 import type { IBookingRepository } from "@/core/ports/booking-repository";
-import type { Booking, BookingFilters, BookingStatus } from "@/core/entities/booking";
-import type { TimeSlot, SlotQuery } from "@/core/entities/slot";
+import type { Booking, BookingStatus } from "@/core/entities/booking";
+import type { TimeSlot } from "@/core/entities/slot";
 
 function rowToBooking(row: typeof schema.bookings.$inferSelect): Booking {
   return {
@@ -24,11 +24,12 @@ function rowToBooking(row: typeof schema.bookings.$inferSelect): Booking {
 
 export const bookingRepo: IBookingRepository = {
   async findById(id) {
-    const row = db
+    const rows = await db
       .select()
       .from(schema.bookings)
       .where(eq(schema.bookings.id, id))
-      .get();
+      .limit(1);
+    const row = rows[0];
     return row ? rowToBooking(row) : null;
   },
 
@@ -59,11 +60,10 @@ export const bookingRepo: IBookingRepository = {
       conditions.push(lte(schema.bookings.endTime, filters.dateTo));
     }
 
-    const rows = db
+    const rows = await db
       .select()
       .from(schema.bookings)
-      .where(and(...conditions))
-      .all();
+      .where(conditions.length ? and(...conditions) : undefined);
 
     return rows.map(rowToBooking);
   },
@@ -75,7 +75,7 @@ export const bookingRepo: IBookingRepository = {
     const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
     // Get all active courts for the club
-    const clubCourts = db
+    const clubCourts = await db
       .select()
       .from(schema.courts)
       .where(
@@ -83,11 +83,9 @@ export const bookingRepo: IBookingRepository = {
           eq(schema.courts.clubId, query.clubId),
           eq(schema.courts.isActive, true)
         )
-      )
-      .all();
+      );
 
-    // Get confirmed bookings for the day
-    const dayBookings = db
+    const dayBookings = await db
       .select()
       .from(schema.bookings)
       .innerJoin(schema.courts, eq(schema.bookings.courtId, schema.courts.id))
@@ -98,8 +96,7 @@ export const bookingRepo: IBookingRepository = {
           gte(schema.bookings.startTime, dayStart),
           lte(schema.bookings.endTime, dayEnd)
         )
-      )
-      .all();
+      );
 
     // Build slots: 60-min slots from 9:00 to 23:00 for each court
     const slots: TimeSlot[] = [];
@@ -154,21 +151,22 @@ export const bookingRepo: IBookingRepository = {
     const conditions = [
       eq(schema.bookings.courtId, courtId),
       eq(schema.bookings.status, "confirmed"),
-      sql`${schema.bookings.startTime} < ${endTime.getTime() / 1000}`,
-      sql`${schema.bookings.endTime} > ${startTime.getTime() / 1000}`,
+      lt(schema.bookings.startTime, endTime),
+      gt(schema.bookings.endTime, startTime),
     ];
 
     if (excludeBookingId) {
       conditions.push(
-        sql`${schema.bookings.id} != ${excludeBookingId}`
+        ne(schema.bookings.id, excludeBookingId)
       );
     }
 
-    const conflicting = db
+    const rows = await db
       .select()
       .from(schema.bookings)
       .where(and(...conditions))
-      .get();
+      .limit(1);
+    const conflicting = rows[0];
 
     return !conflicting;
   },
@@ -177,7 +175,7 @@ export const bookingRepo: IBookingRepository = {
     const id = uuid();
     const now = new Date();
 
-    db.insert(schema.bookings)
+    await db.insert(schema.bookings)
       .values({
         id,
         courtId: input.courtId,
@@ -189,14 +187,14 @@ export const bookingRepo: IBookingRepository = {
         notes: input.notes,
         createdAt: now,
         updatedAt: now,
-      })
-      .run();
+      });
 
-    const row = db
+    const rows = await db
       .select()
       .from(schema.bookings)
       .where(eq(schema.bookings.id, id))
-      .get()!;
+      .limit(1);
+    const row = rows[0]!;
 
     return rowToBooking(row);
   },
@@ -204,22 +202,22 @@ export const bookingRepo: IBookingRepository = {
   async updateStatus(bookingId, status) {
     const now = new Date();
 
-    db.update(schema.bookings)
+    await db.update(schema.bookings)
       .set({ status, updatedAt: now })
-      .where(eq(schema.bookings.id, bookingId))
-      .run();
+      .where(eq(schema.bookings.id, bookingId));
 
-    const row = db
+    const rows = await db
       .select()
       .from(schema.bookings)
       .where(eq(schema.bookings.id, bookingId))
-      .get()!;
+      .limit(1);
+    const row = rows[0]!;
 
     return rowToBooking(row);
   },
 
   async countByDateRange(clubId, from, to) {
-    const result = db
+    const result = (await db
       .select({ count: sql<number>`count(*)` })
       .from(schema.bookings)
       .innerJoin(schema.courts, eq(schema.bookings.courtId, schema.courts.id))
@@ -230,10 +228,9 @@ export const bookingRepo: IBookingRepository = {
           gte(schema.bookings.startTime, from),
           lte(schema.bookings.endTime, to)
         )
-      )
-      .get();
+      )).at(0);
 
-    return result?.count ?? 0;
+    return Number(result?.count ?? 0);
   },
 
   async listByDate(clubId, date) {
@@ -241,7 +238,7 @@ export const bookingRepo: IBookingRepository = {
     const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
     const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
-    const rows = db
+    const rows = await db
       .select()
       .from(schema.bookings)
       .innerJoin(schema.courts, eq(schema.bookings.courtId, schema.courts.id))
@@ -251,8 +248,7 @@ export const bookingRepo: IBookingRepository = {
           gte(schema.bookings.startTime, dayStart),
           lte(schema.bookings.startTime, dayEnd)
         )
-      )
-      .all();
+      );
 
     return rows.map((r) => rowToBooking(r.bookings));
   },

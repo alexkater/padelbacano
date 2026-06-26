@@ -13,3 +13,5 @@ export { paymentRepo } from "./payment-repo";
 export { tournamentRepo } from "./tournament-repo";
 export { analyticsRepo } from "./analytics-repo";
 export { invoiceRepo } from "./invoice-repo";
+export { clubConfigRepo } from "./club-config-repo";
+export { marketplaceSearchRepo } from "./marketplace-search-repo";

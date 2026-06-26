@@ -1,4 +1,4 @@
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, asc, desc, sql } from "drizzle-orm";
 import { v4 as uuid } from "../uuid";
 import { db, schema } from "../index";
 import type { ITournamentRepository } from "@/core/ports/tournament-repository";
@@ -24,7 +24,7 @@ export const tournamentRepo: ITournamentRepository = {
   },
   async create(input) {
     const id = uuid(); const now = new Date();
-    db.insert(schema.tournaments).values({ id, clubId: input.clubId, name: input.name, description: input.description, format: input.format, startDate: input.startDate, endDate: input.endDate ?? null, registrationDeadline: input.registrationDeadline ?? null, minLevel: input.minLevel ?? null, maxLevel: input.maxLevel ?? null, maxParticipants: input.maxParticipants ?? null, entryFee: input.entryFee ?? null, prize: input.prize ?? null, status: "draft", rules: input.rules ?? null, createdAt: now, updatedAt: now }).run();
+    db.insert(schema.tournaments).values({ id, clubId: input.clubId, name: input.name, description: input.description, format: input.format, startDate: input.startDate, endDate: input.endDate ?? null, registrationDeadline: input.registrationDeadline ?? null, minLevel: input.minLevel ?? null, maxLevel: input.maxLevel ?? null, maxParticipants: input.maxParticipants ?? null,       level: input.level ?? "open", entryFee: input.entryFee ?? null, prize: input.prize ?? null, status: "draft", rules: input.rules ?? null, createdAt: now, updatedAt: now }).run();
     return tRow(db.select().from(schema.tournaments).where(eq(schema.tournaments.id, id)).get()!);
   },
   async update(id, input) {
@@ -42,5 +42,6 @@ export const tournamentRepo: ITournamentRepository = {
   async getRegistrations(tournamentId) { return db.select().from(schema.tournamentRegistrations).where(eq(schema.tournamentRegistrations.tournamentId, tournamentId)).all().map(regRow); },
   async createMatch(input) { const id = uuid(); const now = new Date(); db.insert(schema.tournamentMatches).values({ id, ...input, createdAt: now }).run(); return matchRow(db.select().from(schema.tournamentMatches).where(eq(schema.tournamentMatches.id, id)).get()!); },
   async updateMatchResult(matchId, score1, score2, winnerId) { db.update(schema.tournamentMatches).set({ score1, score2, winnerId, status: "completed" }).where(eq(schema.tournamentMatches.id, matchId)).run(); return matchRow(db.select().from(schema.tournamentMatches).where(eq(schema.tournamentMatches.id, matchId)).get()!); },
-  async listMatches(tournamentId) { return db.select().from(schema.tournamentMatches).where(eq(schema.tournamentMatches.tournamentId, tournamentId)).all().map(matchRow); },
+  async updateMatchPlayers(matchId, player1Id, player2Id) { db.update(schema.tournamentMatches).set({ player1Id, player2Id }).where(eq(schema.tournamentMatches.id, matchId)).run(); return matchRow(db.select().from(schema.tournamentMatches).where(eq(schema.tournamentMatches.id, matchId)).get()!); },
+  async listMatches(tournamentId) { return db.select().from(schema.tournamentMatches).where(eq(schema.tournamentMatches.tournamentId, tournamentId)).orderBy(asc(schema.tournamentMatches.round), asc(schema.tournamentMatches.createdAt)).all().map(matchRow); },
 };

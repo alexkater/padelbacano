@@ -1,5 +1,3 @@
-// ─── User repository — Drizzle/SQLite implementation ───────────────────────
-
 import { eq, and } from "drizzle-orm";
 import { v4 as uuid } from "../uuid";
 import { db, schema } from "../index";
@@ -33,20 +31,22 @@ function rowToProfile(row: typeof schema.userProfiles.$inferSelect): UserProfile
 
 export const userRepo: IUserRepository = {
   async findById(id: string) {
-    const row = db
+    const rows = await db
       .select()
       .from(schema.users)
       .where(eq(schema.users.id, id))
-      .get();
+      .limit(1);
+    const row = rows[0];
     return row ? rowToUser(row) : null;
   },
 
   async findByEmail(email: string) {
-    const row = db
+    const rows = await db
       .select()
       .from(schema.users)
       .where(eq(schema.users.email, email))
-      .get();
+      .limit(1);
+    const row = rows[0];
     return row ? rowToUser(row) : null;
   },
 
@@ -54,7 +54,7 @@ export const userRepo: IUserRepository = {
     const id = uuid();
     const now = new Date();
 
-    db.insert(schema.users)
+    await db.insert(schema.users)
       .values({
         id,
         email: input.email,
@@ -62,20 +62,20 @@ export const userRepo: IUserRepository = {
         passwordHash: input.passwordHash,
         image: input.image,
         createdAt: now,
-      })
-      .run();
+      });
 
-    const row = db
+    const rows = await db
       .select()
       .from(schema.users)
       .where(eq(schema.users.id, id))
-      .get()!;
+      .limit(1);
+    const row = rows[0]!;
 
     return rowToUser(row);
   },
 
   async getProfile(userId, clubId) {
-    const row = db
+    const rows = await db
       .select()
       .from(schema.userProfiles)
       .where(
@@ -84,12 +84,21 @@ export const userRepo: IUserRepository = {
           eq(schema.userProfiles.clubId, clubId)
         )
       )
-      .get();
+      .limit(1);
+    const row = rows[0];
     return row ? rowToProfile(row) : null;
   },
 
+  async listProfiles(userId) {
+    const rows = await db
+      .select()
+      .from(schema.userProfiles)
+      .where(eq(schema.userProfiles.userId, userId));
+    return rows.map(rowToProfile);
+  },
+
   async upsertProfile(input) {
-    const existing = db
+    const existingRows = await db
       .select()
       .from(schema.userProfiles)
       .where(
@@ -98,10 +107,11 @@ export const userRepo: IUserRepository = {
           eq(schema.userProfiles.clubId, input.clubId)
         )
       )
-      .get();
+      .limit(1);
+    const existing = existingRows[0];
 
     if (existing) {
-      db.update(schema.userProfiles)
+      await db.update(schema.userProfiles)
         .set({
           role: input.role,
           memberType: input.memberType,
@@ -109,21 +119,21 @@ export const userRepo: IUserRepository = {
           phone: input.phone,
           level: input.level,
         })
-        .where(eq(schema.userProfiles.id, existing.id))
-        .run();
+        .where(eq(schema.userProfiles.id, existing.id));
 
-      const row = db
+      const rows = await db
         .select()
         .from(schema.userProfiles)
         .where(eq(schema.userProfiles.id, existing.id))
-        .get()!;
+        .limit(1);
+      const row = rows[0]!;
       return rowToProfile(row);
     }
 
     const id = uuid();
     const now = new Date();
 
-    db.insert(schema.userProfiles)
+    await db.insert(schema.userProfiles)
       .values({
         id,
         userId: input.userId,
@@ -134,37 +144,36 @@ export const userRepo: IUserRepository = {
         phone: input.phone,
         level: input.level,
         joinedAt: now,
-      })
-      .run();
+      });
 
-    const row = db
+    const rows = await db
       .select()
       .from(schema.userProfiles)
       .where(eq(schema.userProfiles.id, id))
-      .get()!;
+      .limit(1);
+    const row = rows[0]!;
     return rowToProfile(row);
   },
 
   async listClubMembers(clubId) {
-    const rows = db
+    const rows = await db
       .select()
       .from(schema.userProfiles)
-      .where(eq(schema.userProfiles.clubId, clubId))
-      .all();
+      .where(eq(schema.userProfiles.clubId, clubId));
     return rows.map(rowToProfile);
   },
 
   async updateRole(profileId, role) {
-    db.update(schema.userProfiles)
+    await db.update(schema.userProfiles)
       .set({ role })
-      .where(eq(schema.userProfiles.id, profileId))
-      .run();
+      .where(eq(schema.userProfiles.id, profileId));
 
-    const row = db
+    const rows = await db
       .select()
       .from(schema.userProfiles)
       .where(eq(schema.userProfiles.id, profileId))
-      .get()!;
+      .limit(1);
+    const row = rows[0]!;
     return rowToProfile(row);
   },
 };

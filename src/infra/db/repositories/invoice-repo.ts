@@ -1,7 +1,7 @@
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
 import { v4 as uuid } from "../uuid";
 import { db, schema } from "../index";
-import type { IInvoiceRepository } from "@/core/ports/invoice-repository";
+import type { IInvoiceRepository, InvoiceFilters } from "@/core/ports/invoice-repository";
 import type { Invoice, InvoiceItem } from "@/core/entities/invoice";
 
 function invRow(r: typeof schema.invoices.$inferSelect): Invoice {
@@ -18,6 +18,29 @@ export const invoiceRepo: IInvoiceRepository = {
       const items = db.select().from(schema.invoiceItems).where(eq(schema.invoiceItems.invoiceId, r.id)).all().map(itemRow);
       return { ...invRow(r), items };
     }));
+  },
+  async listByClubFiltered(clubId, filters: InvoiceFilters = {}) {
+    const conditions: ReturnType<typeof eq>[] = [eq(schema.invoices.clubId, clubId)];
+    if (filters.status) {
+      conditions.push(eq(schema.invoices.status, filters.status as any));
+    }
+    if (filters.from) {
+      conditions.push(gte(schema.invoices.issueDate, new Date(filters.from)));
+    }
+    if (filters.to) {
+      conditions.push(lte(schema.invoices.issueDate, new Date(filters.to)));
+    }
+    const where = and(...conditions);
+    const offset = filters.offset ?? 0;
+    const limit = filters.limit ?? 20;
+    const totalRow = db.select({ count: sql<number>`count(*)` }).from(schema.invoices).where(where).get();
+    const total = totalRow?.count ?? 0;
+    const rows = db.select().from(schema.invoices).where(where).orderBy(desc(schema.invoices.issueDate)).limit(limit).offset(offset).all();
+    const invoices = await Promise.all(rows.map(async r => {
+      const items = db.select().from(schema.invoiceItems).where(eq(schema.invoiceItems.invoiceId, r.id)).all().map(itemRow);
+      return { ...invRow(r), items };
+    }));
+    return { items: invoices, total, offset, limit };
   },
   async findById(id) {
     const r = db.select().from(schema.invoices).where(eq(schema.invoices.id, id)).get();
@@ -37,6 +60,7 @@ export const invoiceRepo: IInvoiceRepository = {
       customerDocumentType: input.customerDocumentType, customerEmail: input.customerEmail,
       customerPhone: input.customerPhone, customerAddress: input.customerAddress,
       paymentMethod: input.paymentMethod, notes: input.notes,
+      nit: input.nit ?? null,
       createdAt: now, updatedAt: now,
     }).run();
 
@@ -64,14 +88,26 @@ export const invoiceRepo: IInvoiceRepository = {
     return (r?.max ?? 0) + 1;
   },
   async generatePDF(invoice) {
-    // Simple HTML-based invoice PDF generation
-    const items = invoice.items || [];
-    const rows = items.map(i =>
-      `<tr><td>${i.description}</td><td style="text-align:center">${i.quantity}</td><td style="text-align:right">${(i.unitPrice / 100).toLocaleString("es-CO")}</td><td style="text-align:right">${(i.subtotal / 100).toLocaleString("es-CO")}</td></tr>`
-    ).join("");
+    const { clubRepo, clubConfigRepo } = await import("./index");
+    const { generateInvoicePdf } = await import("@/lib/pdf-generator");
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;margin:40px;color:#1a1a1a}h1{color:#1a3a2a}.header{display:flex;justify-content:space-between;margin-bottom:30px}.info{margin-bottom:20px}table{width:100%;border-collapse:collapse;margin:20px 0}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f5f5f5}.totals{text-align:right;margin-top:20px}.footer{margin-top:40px;font-size:12px;color:#666}</style></head><body><div class="header"><div><h1>FACTURA ELECTRÓNICA</h1><p>${invoice.invoiceNumber}</p></div><div><p><strong>Fecha:</strong> ${invoice.issueDate.toLocaleDateString("es-CO")}</p><p><strong>Vence:</strong> ${invoice.dueDate?.toLocaleDateString("es-CO") || "—"}</p></div></div><div class="info"><p><strong>Cliente:</strong> ${invoice.customerName}</p><p><strong>Documento:</strong> ${invoice.customerDocumentType || ""} ${invoice.customerDocument || ""}</p><p><strong>Email:</strong> ${invoice.customerEmail || "—"}</p><p><strong>Tel:</strong> ${invoice.customerPhone || "—"}</p></div><table><thead><tr><th>Descripción</th><th>Cant</th><th>Valor Unit.</th><th>Subtotal</th></tr></thead><tbody>${rows}</tbody></table><div class="totals"><p><strong>Subtotal:</strong> $${(invoice.subtotal / 100).toLocaleString("es-CO")} COP</p><p><strong>IVA (19%):</strong> $${(invoice.taxAmount / 100).toLocaleString("es-CO")} COP</p><p><strong>TOTAL:</strong> $${(invoice.total / 100).toLocaleString("es-CO")} COP</p></div>${invoice.dianCufe ? `<div class="footer"><p><strong>CUFE:</strong> ${invoice.dianCufe}</p><p>Factura electrónica validada por la DIAN</p></div>` : ""}</body></html>`;
+    const club = await clubRepo.findById(invoice.clubId);
+    const name = club?.name ?? "Club";
 
-    return Buffer.from(html, "utf-8");
+    let clubNit: string | null = null;
+    let address: string | null = club?.contact.address ?? null;
+    let phone: string | null = club?.contact.phone ?? null;
+    let email: string | null = club?.contact.email ?? null;
+
+    if (club?.slug) {
+      const config = await clubConfigRepo.getBySlug(club.slug);
+      if (config) {
+        if (!clubNit) clubNit = config.contact.nit;
+        if (!phone) phone = config.contact.phone;
+        if (!email) email = config.contact.email;
+      }
+    }
+
+    return generateInvoicePdf(invoice, { name, nit: clubNit, address, phone, email });
   },
 };
