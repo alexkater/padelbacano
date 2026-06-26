@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { and, eq, gte, lte } from "drizzle-orm";
+import { and, eq, gt, gte, lt, lte } from "drizzle-orm";
 import { db, schema } from "@/infra/db/index";
 
 /**
@@ -41,18 +41,29 @@ export async function GET(request: NextRequest) {
   const dayStart = new Date(y, m - 1, d, 0, 0, 0, 0);
   const dayEnd = new Date(y, m - 1, d, 23, 59, 59, 999);
 
-  // Get confirmed bookings for this court on this date
-  const dayBookings = await db
-    .select()
-    .from(schema.bookings)
-    .where(
-      and(
-        eq(schema.bookings.courtId, courtId),
-        eq(schema.bookings.status, "confirmed"),
-        gte(schema.bookings.startTime, dayStart),
-        lte(schema.bookings.endTime, dayEnd)
-      )
-    );
+  const [dayBookings, maintenanceBlocks] = await Promise.all([
+    db
+      .select()
+      .from(schema.bookings)
+      .where(
+        and(
+          eq(schema.bookings.courtId, courtId),
+          eq(schema.bookings.status, "confirmed"),
+          gte(schema.bookings.startTime, dayStart),
+          lte(schema.bookings.endTime, dayEnd)
+        )
+      ),
+    db
+      .select()
+      .from(schema.maintenanceBlocks)
+      .where(
+        and(
+          eq(schema.maintenanceBlocks.courtId, courtId),
+          lt(schema.maintenanceBlocks.startTime, dayEnd),
+          gt(schema.maintenanceBlocks.endTime, dayStart)
+        )
+      ),
+  ]);
 
   // Generate 60-min slots from 6:00 to 23:00
   const slots: Array<{
@@ -64,6 +75,16 @@ export async function GET(request: NextRequest) {
   for (let h = 6; h < 23; h++) {
     const slotStart = new Date(y, m - 1, d, h, 0, 0, 0);
     const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
+
+    const isBlocked = maintenanceBlocks.some((block) => {
+      const blockStart = new Date(block.startTime);
+      const blockEnd = new Date(block.endTime);
+      return blockStart < slotEnd && blockEnd > slotStart;
+    });
+
+    if (isBlocked) {
+      continue;
+    }
 
     const isAvailable = !dayBookings.some((b) => {
       const bStart = new Date(b.startTime);

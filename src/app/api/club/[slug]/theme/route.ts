@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { clubRepo } from "@/infra/db/repositories";
+import { CLUB_CONFIG } from "@/padelbacano.config";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const club = await clubRepo.findBySlug(slug);
+  let club = await clubRepo.findBySlug(slug);
+  if (!club && slug === CLUB_CONFIG.slug) {
+    club = (await clubRepo.listAll())[0] ?? null;
+  }
   if (!club) return NextResponse.json({ error: "Club not found" }, { status: 404 });
   return NextResponse.json({ theme: club.theme });
 }

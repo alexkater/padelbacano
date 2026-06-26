@@ -1,32 +1,47 @@
 import { NextResponse } from "next/server";
-import { clubRepo } from "@/infra/db/repositories";
+import { resolvePublicClubProfile } from "@/infra/tenant/public-club-profile-service";
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { readonly params: Promise<{ readonly slug: string }> }
 ) {
   const { slug } = await params;
-  const club = await clubRepo.findBySlug(slug);
+  const profile = await resolvePublicClubProfile({ slug });
 
-  if (!club) {
+  if (profile.source === "bootstrap_fallback" && slug !== profile.config.slug) {
     return NextResponse.json({ error: "Club not found" }, { status: 404 });
   }
 
-  // Return only public fields (no internal IDs exposed unnecessarily)
+  const clubId = profile.config.clubId ?? profile.club?.id ?? profile.config.id;
+
   return NextResponse.json({
-    id: club.id,
-    name: club.name,
-    slug: club.slug,
-    pricing: club.pricing,
-    theme: club.theme,
-    contact: club.contact,
-    content: club.content,
-    cancellationPolicy: club.cancellationPolicy,
-    courts: club.courts.map((c) => ({
-      id: c.id,
-      name: c.name,
-      courtType: c.courtType,
-      indoor: c.indoor,
+    id: clubId,
+    name: profile.config.name,
+    slug: profile.config.slug,
+    pricing: {
+      memberPrice: profile.config.pricing.offPeakPriceInCents,
+      nonMemberPrice: profile.config.pricing.peakPriceInCents,
+      currency: profile.config.pricing.currency,
+    },
+    theme: profile.config.theme,
+    contact: profile.club?.contact ?? {
+      phone: profile.config.contact.phone,
+      email: profile.config.contact.email,
+      whatsapp: null,
+      address: profile.config.city,
+      googleMapsUrl: null,
+    },
+    content: profile.club?.content ?? null,
+    cancellationPolicy: {
+      minHoursBefore: profile.config.cancellationPolicy.minHoursBefore,
+      penaltyPercent: profile.config.cancellationPolicy.penaltyPercent,
+      allowRefund: profile.config.cancellationPolicy.allowRefund,
+    },
+    courts: (profile.club?.courts ?? []).map((court) => ({
+      id: court.id,
+      name: court.name,
+      courtType: court.courtType,
+      indoor: court.indoor,
     })),
   });
 }
