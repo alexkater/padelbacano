@@ -8,6 +8,13 @@
       "when": 1781178982266,
       "tag": "0000_numerous_azazel",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782332897517,
+      "tag": "0001_closed_zuras",
+      "breakpoints": true
     }
   ]
 }

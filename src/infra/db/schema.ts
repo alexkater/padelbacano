@@ -2,7 +2,7 @@
 // Maps domain entities to database tables.
 // Keep in sync with src/core/entities/
 
-import { pgTable, text, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, timestamp, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
 
 // ─── Clubs ──────────────────────────────────────────────────────────────
 
@@ -10,6 +10,8 @@ export const clubs = pgTable("clubs", {
   id: text("id").primaryKey(),
   slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
+  city: text("city"),
+  department: text("department"),
   pricing: jsonb("pricing").notNull().$type<{
     memberPrice: number;
     nonMemberPrice: number;
@@ -52,7 +54,66 @@ export const clubs = pgTable("clubs", {
   updatedAt: timestamp("updated_at")
     .notNull()
     .defaultNow(),
-});
+}, (table) => [
+  index("clubs_city_idx").on(table.city),
+]);
+
+// ─── Marketplace / config ─────────────────────────────────────────────────
+
+export const clubConfigs = pgTable("club_configs", {
+  id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .references(() => clubs.id, { onDelete: "cascade" }),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  city: text("city").notNull(),
+  department: text("department").notNull(),
+  nit: text("nit"),
+  phone: text("phone"),
+  email: text("email"),
+  logoUrl: text("logo_url"),
+  heroImageUrl: text("hero_image_url"),
+  domain: text("domain"),
+  theme: jsonb("theme").notNull().$type<{
+    primaryColor: string;
+    surfaceColor: string;
+    fontFamily: string;
+    logoUrl: string | null;
+    borderRadius: "none" | "sm" | "md" | "lg";
+  }>(),
+  pricing: jsonb("pricing").notNull().$type<{
+    currency: "COP";
+    peakPriceInCents: number;
+    offPeakPriceInCents: number;
+    memberDiscountPercent: number;
+  }>(),
+  modules: jsonb("modules").notNull().$type<{
+    social: boolean;
+    payments: boolean;
+    tournaments: boolean;
+    analytics: boolean;
+    invoicing: boolean;
+    school: boolean;
+    loyalty: boolean;
+  }>(),
+  status: text("status", { enum: ["pending_approval", "active", "suspended"] })
+    .notNull()
+    .default("pending_approval"),
+  verified: boolean("verified").notNull().default(false),
+  cancellationPolicy: jsonb("cancellation_policy").notNull().$type<{
+    minHoursBefore: number;
+    penaltyPercent: number;
+    allowRefund: boolean;
+    summary: string;
+  }>(),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .defaultNow(),
+}, (table) => [
+  uniqueIndex("club_configs_club_id_idx").on(table.clubId),
+  uniqueIndex("club_configs_domain_idx").on(table.domain),
+  index("club_configs_city_status_idx").on(table.city, table.status),
+]);
 
 // ─── Courts ─────────────────────────────────────────────────────────────
 
@@ -65,13 +126,34 @@ export const courts = pgTable("courts", {
   courtType: text("court_type", { enum: ["glass", "panoramic", "wall"] })
     .notNull()
     .default("glass"),
+  sport: text("sport", { enum: ["padel", "tenis"] })
+    .notNull()
+    .default("padel"),
+  surface: text("surface"),
   indoor: boolean("indoor").notNull().default(true),
+  lighting: boolean("lighting").notNull().default(true),
   isActive: boolean("is_active").notNull().default(true),
   order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at")
     .notNull()
     .defaultNow(),
-});
+}, (table) => [
+  index("courts_club_active_idx").on(table.clubId, table.isActive),
+]);
+
+export const courtPricing = pgTable("court_pricing", {
+  id: text("id").primaryKey(),
+  courtId: text("court_id")
+    .notNull()
+    .references(() => courts.id, { onDelete: "cascade" }),
+  weekday: integer("weekday").notNull(),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  priceInCents: integer("price_in_cents").notNull(),
+  isPeak: boolean("is_peak").notNull().default(false),
+}, (table) => [
+  index("court_pricing_court_weekday_time_idx").on(table.courtId, table.weekday, table.startTime, table.endTime),
+]);
 
 // ─── Users ──────────────────────────────────────────────────────────────
 
@@ -114,6 +196,8 @@ export const userProfiles = pgTable("user_profiles", {
 
 export const bookings = pgTable("bookings", {
   id: text("id").primaryKey(),
+  clubId: text("club_id")
+    .references(() => clubs.id, { onDelete: "cascade" }),
   courtId: text("court_id")
     .notNull()
     .references(() => courts.id, { onDelete: "cascade" }),
@@ -135,7 +219,132 @@ export const bookings = pgTable("bookings", {
   updatedAt: timestamp("updated_at")
     .notNull()
     .defaultNow(),
+}, (table) => [
+  index("bookings_court_start_idx").on(table.courtId, table.startTime),
+  index("bookings_club_created_idx").on(table.clubId, table.createdAt),
+]);
+
+// ─── Booking / blocks / pricing ───────────────────────────────────────────
+
+export const maintenanceBlocks = pgTable("maintenance_blocks", {
+  id: text("id").primaryKey(),
+  courtId: text("court_id")
+    .notNull()
+    .references(() => courts.id, { onDelete: "cascade" }),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  reason: text("reason").notNull(),
+  createdBy: text("created_by")
+    .references(() => users.id, { onDelete: "set null" }),
+}, (table) => [
+  index("maintenance_blocks_court_time_idx").on(table.courtId, table.startTime, table.endTime),
+]);
+
+export const bookingCancellations = pgTable("booking_cancellations", {
+  id: text("id").primaryKey(),
+  bookingId: text("booking_id")
+    .notNull()
+    .references(() => bookings.id, { onDelete: "cascade" }),
+  cancelledBy: text("cancelled_by")
+    .references(() => users.id, { onDelete: "set null" }),
+  reason: text("reason"),
+  refundAmount: integer("refund_amount").notNull().default(0),
+  cancelledAt: timestamp("cancelled_at")
+    .notNull()
+    .defaultNow(),
 });
+
+// ─── Onboarding / approval ────────────────────────────────────────────────
+
+export const onboardingApplications = pgTable("onboarding_applications", {
+  id: text("id").primaryKey(),
+  clubName: text("club_name").notNull(),
+  slug: text("slug").notNull(),
+  city: text("city").notNull(),
+  department: text("department").notNull(),
+  nit: text("nit"),
+  contactName: text("contact_name").notNull(),
+  contactPhone: text("contact_phone").notNull(),
+  contactEmail: text("contact_email").notNull(),
+  status: text("status", { enum: ["pending_approval", "approved", "rejected"] })
+    .notNull()
+    .default("pending_approval"),
+  reviewedBy: text("reviewed_by")
+    .references(() => users.id, { onDelete: "set null" }),
+  reviewedAt: timestamp("reviewed_at"),
+  rejectionReason: text("rejection_reason"),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .defaultNow(),
+}, (table) => [
+  uniqueIndex("onboarding_applications_slug_idx").on(table.slug),
+  index("onboarding_applications_status_created_idx").on(table.status, table.createdAt),
+]);
+
+// ─── Notifications / push / preferences ───────────────────────────────────
+
+export const notificationLogs = pgTable("notification_log", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  eventType: text("event_type", {
+    enum: ["booking_created", "booking_cancelled", "tournament_registered", "club_approved", "club_rejected", "payment_received"],
+  }).notNull(),
+  channel: text("channel", { enum: ["email", "whatsapp", "push"] }).notNull(),
+  status: text("status", { enum: ["pending", "sent", "failed"] })
+    .notNull()
+    .default("pending"),
+  retryCount: integer("retry_count").notNull().default(0),
+  error: text("error"),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .defaultNow(),
+}, (table) => [
+  index("notification_log_user_created_idx").on(table.userId, table.createdAt),
+  index("notification_log_event_status_idx").on(table.eventType, table.status),
+]);
+
+export const notificationPreferences = pgTable("user_notification_preferences", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  emailEnabled: boolean("email_enabled").notNull().default(true),
+  whatsAppEnabled: boolean("whatsapp_enabled").notNull().default(true),
+  pushEnabled: boolean("push_enabled").notNull().default(true),
+});
+
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .defaultNow(),
+}, (table) => [
+  uniqueIndex("push_subscriptions_endpoint_idx").on(table.endpoint),
+  index("push_subscriptions_user_idx").on(table.userId),
+]);
+
+export const auditLogs = pgTable("audit_logs", {
+  id: text("id").primaryKey(),
+  actorId: text("actor_id")
+    .references(() => users.id, { onDelete: "set null" }),
+  action: text("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  metadata: jsonb("metadata").notNull().$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .defaultNow(),
+}, (table) => [
+  index("audit_logs_entity_idx").on(table.entityType, table.entityId),
+  index("audit_logs_actor_created_idx").on(table.actorId, table.createdAt),
+]);
 
 
 // ─── Announcements ─────────────────────────────────────────────────────────
@@ -187,7 +396,7 @@ export const membershipPlans = pgTable("membership_plans", {
   name: text("name").notNull(),
   description: text("description"),
   price: integer("price").notNull(),
-  currency: text("currency").notNull().default("EUR"),
+  currency: text("currency").notNull().default("COP"),
   interval: text("interval", { enum: ["monthly", "quarterly", "yearly"] })
     .notNull()
     .default("monthly"),
@@ -458,6 +667,9 @@ export const tournaments = pgTable("tournaments", {
   minLevel: integer("min_level"),
   maxLevel: integer("max_level"),
   maxParticipants: integer("max_participants"),
+  level: text("level", { enum: ["open", "A", "B", "C"] })
+    .notNull()
+    .default("open"),
   entryFee: integer("entry_fee"),
   prize: text("prize"),
   status: text("status", {
@@ -471,6 +683,22 @@ export const tournaments = pgTable("tournaments", {
     .notNull()
     .defaultNow(),
 });
+
+export const tournamentPlayers = pgTable("tournament_players", {
+  id: text("id").primaryKey(),
+  tournamentId: text("tournament_id")
+    .notNull()
+    .references(() => tournaments.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  seed: integer("seed"),
+  registeredAt: timestamp("registered_at")
+    .notNull()
+    .defaultNow(),
+}, (table) => [
+  uniqueIndex("tournament_players_tournament_user_idx").on(table.tournamentId, table.userId),
+]);
 
 export const tournamentRegistrations = pgTable("tournament_registrations", {
   id: text("id").primaryKey(),
@@ -506,6 +734,7 @@ export const tournamentMatches = pgTable("tournament_matches", {
   winnerId: text("winner_id")
     .references(() => users.id, { onDelete: "set null" }),
   startTime: timestamp("start_time"),
+  scheduledTime: timestamp("scheduled_time"),
   status: text("status", {
     enum: ["scheduled", "in_progress", "completed", "cancelled"],
   }).notNull().default("scheduled"),
@@ -514,6 +743,22 @@ export const tournamentMatches = pgTable("tournament_matches", {
     .notNull()
     .defaultNow(),
 });
+
+export const tournamentStandings = pgTable("tournament_standings", {
+  id: text("id").primaryKey(),
+  tournamentId: text("tournament_id")
+    .notNull()
+    .references(() => tournaments.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  matchesPlayed: integer("matches_played").notNull().default(0),
+  wins: integer("wins").notNull().default(0),
+  losses: integer("losses").notNull().default(0),
+  points: integer("points").notNull().default(0),
+}, (table) => [
+  uniqueIndex("tournament_standings_tournament_user_idx").on(table.tournamentId, table.userId),
+]);
 
 // ─── Analytics cache ───────────────────────────────────────────────────────
 
@@ -539,21 +784,28 @@ export const dailySummaries = pgTable("daily_summaries", {
 
 export const invoices = pgTable("invoices", {
   id: text("id").primaryKey(),
+  bookingId: text("booking_id")
+    .references(() => bookings.id, { onDelete: "set null" }),
   clubId: text("club_id")
     .notNull()
     .references(() => clubs.id, { onDelete: "cascade" }),
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  nit: text("nit"),
   invoiceNumber: text("invoice_number").notNull(),
   prefix: text("prefix").notNull().default("FE"),
   consecutive: integer("consecutive").notNull(),
   issueDate: timestamp("issue_date").notNull(),
   dueDate: timestamp("due_date"),
   subtotal: integer("subtotal").notNull(),
+  subtotalInCents: integer("subtotal_in_cents"),
   taxRate: integer("tax_rate").notNull().default(1900),
+  ivaPercent: integer("iva_percent"),
   taxAmount: integer("tax_amount").notNull(),
+  ivaInCents: integer("iva_in_cents"),
   total: integer("total").notNull(),
+  totalInCents: integer("total_in_cents"),
   currency: text("currency").notNull().default("COP"),
   status: text("status", {
     enum: ["draft", "issued", "paid", "cancelled", "dian_rejected"],
@@ -569,6 +821,7 @@ export const invoices = pgTable("invoices", {
   paymentMethod: text("payment_method"),
   notes: text("notes"),
   dianCufe: text("dian_cufe"),
+  cufe: text("cufe"),
   dianXml: text("dian_xml"),
   dianStatus: text("dian_status", {
     enum: ["pending", "accepted", "rejected"],
@@ -589,7 +842,9 @@ export const invoiceItems = pgTable("invoice_items", {
   description: text("description").notNull(),
   quantity: integer("quantity").notNull().default(1),
   unitPrice: integer("unit_price").notNull(),
+  unitPriceInCents: integer("unit_price_in_cents"),
   subtotal: integer("subtotal").notNull(),
+  totalPriceInCents: integer("total_price_in_cents"),
   bookingId: text("booking_id")
     .references(() => bookings.id, { onDelete: "set null" }),
 });
