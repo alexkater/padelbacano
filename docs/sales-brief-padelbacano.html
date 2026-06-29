@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PádelBacano — Brief de Ventas</title>
+<style>
+  :root {
+    --pb-brand: #0E5B3A;
+    --pb-clay: #E66A2C;
+    --pb-yellow: #F3B61F;
+    --pb-blue: #1267E8;
+    --pb-surface: #F7FAF5;
+    --pb-ink: #0B1F17;
+    --pb-muted: #476255;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--pb-surface);
+    color: var(--pb-ink);
+    line-height: 1.6;
+  }
+  .hero {
+    background: var(--pb-brand);
+    color: #fff;
+    padding: 48px 24px;
+    text-align: center;
+  }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 8px; }
+  .hero p { font-size: 1.15rem; opacity: .85; max-width: 600px; margin: 0 auto; }
+  .container { max-width: 800px; margin: 0 auto; padding: 32px 20px; }
+  h2 { color: var(--pb-brand); margin: 32px 0 12px; font-size: 1.4rem; }
+  h3 { color: var(--pb-brand); margin: 16px 0 8px; font-size: 1.1rem; }
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #dde9df;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .card h4 { color: var(--pb-brand); margin-bottom: 8px; }
+  .card p, .card li { font-size: .92rem; color: var(--pb-muted); }
+  .card ul { padding-left: 18px; }
+  .pill {
+    display: inline-block;
+    background: var(--pb-brand);
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: .75rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .pill.clay { background: var(--pb-clay); }
+  .numbers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    text-align: center;
+    margin: 24px 0;
+  }
+  .num { font-size: 1.8rem; font-weight: 800; color: var(--pb-brand); }
+  .num-label { font-size: .8rem; color: var(--pb-muted); }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #dde9df; }
+  th { background: var(--pb-brand); color: #fff; font-weight: 600; font-size: .9rem; }
+  th:first-child { border-radius: 8px 0 0 0; }
+  th:last-child { border-radius: 0 8px 0 0; }
+  td { font-size: .9rem; }
+  tr:nth-child(even) { background: #f8faf7; }
+  .steps { counter-reset: step; }
+  .steps li {
+    list-style: none;
+    counter-increment: step;
+    padding: 8px 0 8px 36px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 24px; height: 24px;
+    background: var(--pb-brand);
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    font-size: .8rem;
+    font-weight: 700;
+    line-height: 24px;
+  }
+  .pitch {
+    background: #fff;
+    border-left: 4px solid var(--pb-clay);
+    padding: 16px 20px;
+    border-radius: 0 10px 10px 0;
+    margin: 16px 0;
+    font-style: italic;
+  }
+  .footer {
+    text-align: center;
+    padding: 32px;
+    color: var(--pb-muted);
+    font-size: .85rem;
+    border-top: 1px solid #dde9df;
+  }
+  .footer strong { color: var(--pb-brand); }
+  @media (max-width: 600px) {
+    .card-grid, .numbers { grid-template-columns: 1fr; }
+    .hero { padding: 32px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>PádelBacano</h1>
+  <p>El marketplace de pádel y tenis para Colombia. Conecta jugadores con clubes en una sola plataforma.</p>
+</div>
+
+<div class="container">
+
+  <div class="numbers">
+    <div><div class="num">233+</div><div class="num-label">Clubes</div></div>
+    <div><div class="num">53</div><div class="num-label">Ciudades</div></div>
+    <div><div class="num">687</div><div class="num-label">Canchas</div></div>
+    <div><div class="num">39.5%</div><div class="num-label">Crecimiento</div></div>
+  </div>
+
+  <h2>Dos caras, una plataforma</h2>
+  <div class="card-grid">
+    <div class="card">
+      <span class="pill">Jugadores</span>
+      <ul>
+        <li>Buscar canchas por ciudad, fecha y precio</li>
+        <li>Reservar en 3 clics</li>
+        <li>Disponibilidad en tiempo real</li>
+        <li>Torneos con brackets visuales</li>
+        <li>App instalable (PWA)</li>
+        <li>Notificaciones email y WhatsApp</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="pill clay">Clubes</span>
+      <ul>
+        <li>Gestionar reservas, canchas y precios</li>
+        <li>Onboarding en 10 minutos</li>
+        <li>Panel de analytics (ocupación, ingresos)</li>
+        <li>Facturación electrónica DIAN-ready</li>
+        <li>Torneos con bracket automatizado</li>
+        <li>Multi-sede desde un mismo panel</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>PádelBacano vs Playtomic</h2>
+  <table>
+    <tr><th>PádelBacano</th><th>Playtomic</th></tr>
+    <tr><td>🇨🇴 100% Colombia (COP, COT, es-CO)</td><td>Genérico, sin adaptación local</td></tr>
+    <tr><td>🆓 <strong>Gratis para clubes</strong> (lanzamiento)</td><td>4 tiers de pago</td></tr>
+    <tr><td>📱 PWA instalable, sin app store</td><td>App nativa requerida</td></tr>
+    <tr><td>🎨 Diseño simple, rápido, moderno</td><td>UX recargado, quejas de bugs</td></tr>
+    <tr><td>🧾 Facturación DIAN-ready (PDF + XML)</td><td>Sin facturación electrónica</td></tr>
+    <tr><td>🏓 Torneos con bracket visual</td><td>Torneos limitados</td></tr>
+    <tr><td>📊 Analytics en tiempo real</td><td>Analytics premium</td></tr>
+  </table>
+
+  <h2>Pitch de 30 segundos</h2>
+  <div class="pitch">
+    "PádelBacano es el marketplace de pádel para Colombia. Como Playtomic, pero 100% local: precios en pesos, horarios de Bogotá, facturación electrónica lista para la DIAN. Los jugadores encuentran y reservan canchas en segundos. Los clubes gestionan todo desde un panel simple y profesional. <strong>Y en el lanzamiento, es completamente gratis para los clubes.</strong>"
+  </div>
+
+  <h2>Cómo empieza un club</h2>
+  <ol class="steps">
+    <li>Entrar a <strong>padelbacano.com/onboarding</strong></li>
+    <li>Llenar 6 pasos: perfil, canchas, precios, horarios, staff, revisión</li>
+    <li>Esperar aprobación (24-48h)</li>
+    <li><strong>Listo.</strong> Sus canchas aparecen en el marketplace nacional.</li>
+  </ol>
+  <p style="text-align:center;color:var(--pb-muted);margin-top:8px">⏱ Tiempo total: <strong>10 minutos</strong></p>
+
+  <h2>Modelo de negocio</h2>
+  <table>
+    <tr><th>Fase</th><th>Modelo</th><th>Timing</th></tr>
+    <tr><td>V1 (ahora)</td><td><strong>Gratis</strong> — capturar clubes y jugadores</td><td>Lanzamiento inmediato</td></tr>
+    <tr><td>V2</td><td>Comisión por reserva o suscripción mensual</td><td>3-6 meses post-lanzamiento</td></tr>
+  </table>
+
+  <h2>Preguntas frecuentes</h2>
+  <div class="card" style="margin-bottom:12px">
+    <h4>¿Por qué gratis?</h4>
+    <p>Estamos en fase de crecimiento. Queremos que los mejores clubes estén en la plataforma antes de monetizar.</p>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <h4>¿Y mis datos?</h4>
+    <p>Cada club tiene su propio espacio aislado. Tus datos son tuyos. No compartimos información entre clubes.</p>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <h4>¿Qué pasa si ya uso Playtomic?</h4>
+    <p>Puedes tener ambos. Pero en PádelBacano los jugadores te encuentran más fácil, pagas en COP, y tienes facturación DIAN-ready.</p>
+  </div>
+  <div class="card">
+    <h4>¿Tienen app?</h4>
+    <p>Es una PWA: se instala como una app normal, funciona sin internet, y recibe notificaciones. Sin App Store ni Play Store.</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  <strong>PádelBacano</strong> — El marketplace de pádel para Colombia<br>
+  padelbacano.com &nbsp;|&nbsp; hola@padelbacano.com<br>
+  <span style="font-size:.75rem">junio 2026 · Versión equipo de ventas</span>
+</div>
+
+</body>
+</html>
