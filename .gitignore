@@ -10,3 +10,4 @@ dist/
 .claude/
 .npm-cache/
 .omo/
+test-results/
