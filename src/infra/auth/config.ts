@@ -54,6 +54,7 @@ const googleProviders =
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: env.AUTH_SECRET,
+  trustHost: true,
   providers: [
     ...googleProviders,
     Credentials({

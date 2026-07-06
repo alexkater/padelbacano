@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search, X } from "lucide-react";
+import { LogOut, Menu, Search, User, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 
 type NavItem = {
   readonly href: string;
@@ -52,6 +53,8 @@ function DrawerNavLink({ href, label, active, onClick }: NavItem & { readonly ac
 export function MarketplaceNav() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated";
 
   // Close drawer on route change
   useEffect(() => {
@@ -98,14 +101,33 @@ export function MarketplaceNav() {
           ))}
         </nav>
 
-        {/* Right side: login + hamburger */}
+        {/* Right side: auth-aware buttons */}
         <div className="flex items-center gap-[var(--pb-space-3)]">
-          <Link
-            href="/login"
-            className="hidden min-h-10 items-center rounded-[var(--pb-radius-full)] border border-[var(--pb-border-subtle)] bg-[var(--pb-surface-primary)] px-[var(--pb-space-3)] text-sm font-semibold text-[var(--pb-text-primary)] transition-colors hover:border-[var(--pb-border-strong)] focus-visible:outline-none focus-visible:shadow-[var(--pb-ring-focus)] sm:inline-flex"
-          >
-            Entrar
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <Link
+                href="/perfil"
+                className="hidden min-h-10 items-center gap-[var(--pb-space-2)] rounded-[var(--pb-radius-full)] border border-[var(--pb-border-subtle)] bg-[var(--pb-surface-primary)] px-[var(--pb-space-3)] text-sm font-semibold text-[var(--pb-text-primary)] transition-colors hover:border-[var(--pb-border-strong)] focus-visible:outline-none focus-visible:shadow-[var(--pb-ring-focus)] sm:inline-flex"
+              >
+                <User className="size-4" />
+                {session?.user?.name ?? "Cuenta"}
+              </Link>
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="hidden min-h-10 items-center gap-[var(--pb-space-2)] rounded-[var(--pb-radius-full)] border border-[var(--pb-border-subtle)] px-[var(--pb-space-3)] text-sm font-medium text-[var(--pb-text-secondary)] transition-colors hover:border-[var(--pb-status-error)] hover:text-[var(--pb-status-error)] focus-visible:outline-none focus-visible:shadow-[var(--pb-ring-focus)] sm:inline-flex"
+              >
+                <LogOut className="size-4" />
+                Salir
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden min-h-10 items-center rounded-[var(--pb-radius-full)] border border-[var(--pb-border-subtle)] bg-[var(--pb-surface-primary)] px-[var(--pb-space-3)] text-sm font-semibold text-[var(--pb-text-primary)] transition-colors hover:border-[var(--pb-border-strong)] focus-visible:outline-none focus-visible:shadow-[var(--pb-ring-focus)] sm:inline-flex"
+            >
+              Entrar
+            </Link>
+          )}
 
           {/* Mobile hamburger */}
           <button
@@ -159,13 +181,32 @@ export function MarketplaceNav() {
               ))}
             </nav>
             <div className="border-t border-[var(--pb-border-subtle)] px-[var(--pb-space-4)] py-[var(--pb-space-4)]">
-              <Link
-                className="flex min-h-11 w-full items-center justify-center rounded-[var(--pb-radius-md)] bg-[var(--pb-brand-primary)] text-sm font-semibold text-[var(--pb-brand-foreground)] transition-colors hover:bg-[var(--pb-brand-hover)] focus-visible:outline-none focus-visible:shadow-[var(--pb-ring-focus)]"
-                href="/login"
-                onClick={closeMenu}
-              >
-                Entrar o registrarse
-              </Link>
+              {isAuthenticated ? (
+                <div className="space-y-[var(--pb-space-2)]">
+                  <Link
+                    className="flex min-h-11 w-full items-center justify-center rounded-[var(--pb-radius-md)] bg-[var(--pb-brand-primary)] text-sm font-semibold text-[var(--pb-brand-foreground)] transition-colors hover:bg-[var(--pb-brand-hover)] focus-visible:outline-none focus-visible:shadow-[var(--pb-ring-focus)]"
+                    href="/perfil"
+                    onClick={closeMenu}
+                  >
+                    Mi cuenta
+                  </Link>
+                  <button
+                    className="flex min-h-11 w-full items-center justify-center gap-[var(--pb-space-2)] rounded-[var(--pb-radius-md)] border border-[var(--pb-border-subtle)] text-sm font-medium text-[var(--pb-text-secondary)] transition-colors hover:border-[var(--pb-status-error)] hover:text-[var(--pb-status-error)] focus-visible:outline-none focus-visible:shadow-[var(--pb-ring-focus)]"
+                    onClick={() => { closeMenu(); signOut({ callbackUrl: "/" }); }}
+                  >
+                    <LogOut className="size-4" />
+                    Cerrar sesión
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  className="flex min-h-11 w-full items-center justify-center rounded-[var(--pb-radius-md)] bg-[var(--pb-brand-primary)] text-sm font-semibold text-[var(--pb-brand-foreground)] transition-colors hover:bg-[var(--pb-brand-hover)] focus-visible:outline-none focus-visible:shadow-[var(--pb-ring-focus)]"
+                  href="/login"
+                  onClick={closeMenu}
+                >
+                  Entrar o registrarse
+                </Link>
+              )}
             </div>
           </div>
         </div>

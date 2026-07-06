@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Saira, Anton } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { PwaInstallPrompt } from "@/components/marketplace/pwa-install-prompt";
+import { AuthProvider } from "@/components/auth-provider";
 import "./globals.css";
 
 const saira = Saira({
@@ -81,7 +82,9 @@ export default function RootLayout({
     <html lang="es" className={`${saira.variable} ${anton.variable} h-full`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
           <PwaInstallPrompt />
         </ThemeProvider>
         <script

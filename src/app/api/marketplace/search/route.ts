@@ -117,6 +117,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: withSearchCOTDisplay(data) }, { headers: CORS_HEADERS });
   } catch (error) {
+    console.error("search error:", error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : "");
     if (error instanceof Error) {
       return NextResponse.json(
         { success: false, error: "Marketplace search is temporarily unavailable" },
